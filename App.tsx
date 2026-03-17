@@ -10,16 +10,19 @@ import { AuthModal } from './AuthModal';
 import ImagePreviewModal from './components/ImagePreviewModal';
 import CanvasModal from './components/CanvasModal';
 import CameoSetupModal from './components/CameoSetupModal';
-import {
-  generateFastTextResponseStream,
-  generateResponse,
-  generateSvgFromDescription,
-  generateVideoFromPromptService,
-  generateTtsAudio,
-  generateVisagistaResponse,
-} from './services/geminiService';
+import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
+import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { collection, doc, setDoc, getDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 import { AGENT_CONVERSATION_TTL_MS } from './constants';
+import { 
+    generateResponse, 
+    generateVideoFromPromptService, 
+    generateFastTextResponseStream, 
+    generateTtsAudio, 
+    generateSvgFromDescription, 
+    generateVisagistaResponse 
+} from './services/geminiService';
 
 const safeNewDate = (dateString: string | Date | undefined): Date => {
   if (!dateString) {
@@ -45,7 +48,8 @@ export const App = () => {
     const [isCanvasOpen, setIsCanvasOpen] = useState(false);
     const [previewedImagesInfo, setPreviewedImagesInfo] = useState<{ images: GeneratedImage[], startIndex: number } | null>(null);
     const [isCameoModalOpen, setIsCameoModalOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
     const [authError, setAuthError] = useState<string | null>(null);
     const [isAppStarted, setIsAppStarted] = useState(false);
     const [cameoProfile, setCameoProfile] = useState<CameoProfile | null>(null);
@@ -68,25 +72,88 @@ export const App = () => {
     const [humanKingProfile, setHumanKingProfile] = useState<HumanKingProfile | null>(null);
     const [protonsHQProfile, setProtonsHQProfile] = useState<ProtonsHQProfile | null>(null);
 
-    // Initialize User
+    // Initialize Firebase Auth
     useEffect(() => {
-        let loadedUser = null;
-        try {
-            const savedUserStr = localStorage.getItem('protons-ai-user');
-            loadedUser = savedUserStr ? JSON.parse(savedUserStr) : null;
-        } catch (e) {
-            console.error("Erro ao carregar usuário do localStorage", e);
-        }
-
-        if (loadedUser) {
-            setCurrentUser(loadedUser);
-        }
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setCurrentUser(user);
+            setIsAuthLoading(false);
+            if (user) {
+                // Sync user profile to Firestore
+                const userRef = doc(db, 'users', user.uid);
+                setDoc(userRef, {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    lastLoginAt: serverTimestamp(),
+                    createdAt: serverTimestamp() // setDoc with merge or check existence
+                }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`));
+            }
+        });
         
         const started = localStorage.getItem('protons-ai-started');
         if (started === 'true') {
             setIsAppStarted(true);
         }
+        return () => unsubscribe();
     }, []);
+
+    // Sync Chats from Firestore
+    useEffect(() => {
+        if (!currentUser) {
+            setChatSessions([]);
+            return;
+        }
+
+        const q = query(
+            collection(db, 'chats'),
+            where('userId', '==', currentUser.uid),
+            orderBy('lastInteractedAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const sessions: ChatSession[] = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id,
+                    createdAt: data.createdAt?.toDate() || new Date(),
+                    lastInteractedAt: data.lastInteractedAt?.toDate() || new Date(),
+                    messages: [] // Messages will be loaded per chat
+                } as ChatSession;
+            });
+            setChatSessions(sessions);
+        }, (err) => handleFirestoreError(err, OperationType.LIST, 'chats'));
+
+        return () => unsubscribe();
+    }, [currentUser]);
+
+    // Sync Messages for Current Chat
+    useEffect(() => {
+        if (!currentUser || !currentChatId) return;
+
+        const q = query(
+            collection(db, 'chats', currentChatId, 'messages'),
+            orderBy('createdAt', 'asc')
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const msgs: Message[] = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id,
+                    createdAt: data.createdAt?.toDate() || new Date()
+                } as Message;
+            });
+            
+            setChatSessions(prev => prev.map(chat => 
+                chat.id === currentChatId ? { ...chat, messages: msgs } : chat
+            ));
+        }, (err) => handleFirestoreError(err, OperationType.LIST, `chats/${currentChatId}/messages`));
+
+        return () => unsubscribe();
+    }, [currentUser, currentChatId]);
 
     const handleStartApp = () => {
         setIsAppStarted(true);
@@ -332,53 +399,52 @@ export const App = () => {
 
     }, [activeChatSession, agents]);
 
-    const addMessageToChat = useCallback((chatId: string, message: Message) => {
-        setChatSessions(prev =>
-            prev.map(chat =>
-                chat.id === chatId
-                    ? { ...chat, messages: [...chat.messages, message], lastInteractedAt: new Date() }
-                    : chat
-            )
-        );
-    }, []);
+    const addMessageToChat = useCallback(async (chatId: string, message: Message) => {
+        if (!currentUser) return;
+        const msgRef = doc(db, 'chats', chatId, 'messages', message.id);
+        await setDoc(msgRef, {
+            ...message,
+            userId: currentUser.uid,
+            createdAt: serverTimestamp()
+        }).catch(err => handleFirestoreError(err, OperationType.WRITE, `chats/${chatId}/messages/${message.id}`));
+        
+        const chatRef = doc(db, 'chats', chatId);
+        await updateDoc(chatRef, {
+            lastInteractedAt: serverTimestamp()
+        }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `chats/${chatId}`));
+    }, [currentUser]);
 
-    const updateMessageInChat = useCallback((chatId: string, messageId: string, updates: Partial<Message>) => {
-        setChatSessions(prev =>
-            prev.map(chat =>
-                chat.id === chatId
-                    ? {
-                        ...chat,
-                        messages: chat.messages.map(msg =>
-                            msg.id === messageId ? { ...msg, ...updates } : msg
-                        ),
-                        lastInteractedAt: new Date(),
-                    }
-                    : chat
-            )
-        );
-    }, []);
+    const updateMessageInChat = useCallback(async (chatId: string, messageId: string, updates: Partial<Message>) => {
+        if (!currentUser) return;
+        const msgRef = doc(db, 'chats', chatId, 'messages', messageId);
+        await updateDoc(msgRef, updates).catch(err => handleFirestoreError(err, OperationType.UPDATE, `chats/${chatId}/messages/${messageId}`));
+    }, [currentUser]);
     
     const resetSuperPromptState = () => {
         setSuperPromptWorkflowState({ status: 'idle' });
         setPendingVariationInput(null);
     };
     
-    const handleNewChat = useCallback((mode: AIMode, agentId?: string) => {
-        const newChat: ChatSession = {
-            id: uuidv4(),
+    const handleNewChat = useCallback(async (mode: AIMode, agentId?: string) => {
+        if (!currentUser) return;
+        const chatId = uuidv4();
+        const newChat = {
+            id: chatId,
+            userId: currentUser.uid,
             title: mode === AIMode.AgentChat ? 'Conversa com Agente' : mode,
-            messages: [],
             mode: mode,
-            agentId: agentId,
-            createdAt: new Date(),
-            lastInteractedAt: new Date(),
+            agentId: agentId || null,
+            createdAt: serverTimestamp(),
+            lastInteractedAt: serverTimestamp(),
             isPhotoShootActive: false,
         };
-        setChatSessions(prev => [newChat, ...prev]);
-        setCurrentChatId(newChat.id);
+        const chatRef = doc(db, 'chats', chatId);
+        await setDoc(chatRef, newChat).catch(err => handleFirestoreError(err, OperationType.WRITE, `chats/${chatId}`));
+        
+        setCurrentChatId(chatId);
         setActiveView('chat');
         resetSuperPromptState();
-    }, []);
+    }, [currentUser]);
 
     const handleSelectAgent = useCallback((agentId: string) => {
         let agentChat = chatSessions.find(c => c.agentId === agentId);
@@ -421,19 +487,35 @@ export const App = () => {
         resetSuperPromptState();
     }, []);
     
-    const handleDeleteChat = useCallback((chatId: string) => {
-        setChatSessions(prev => prev.filter(c => c.id !== chatId));
+    const handleDeleteChat = useCallback(async (chatId: string) => {
+        if (!currentUser) return;
+        const chatRef = doc(db, 'chats', chatId);
+        await deleteDoc(chatRef).catch(err => handleFirestoreError(err, OperationType.DELETE, `chats/${chatId}`));
+        
         if (currentChatId === chatId) {
-            const remainingChats = chatSessions.filter(c => c.id !== chatId);
-            const sorted = [...remainingChats].sort((a,b) => (b.lastInteractedAt?.getTime() || 0) - (a.lastInteractedAt?.getTime() || 0));
-            setCurrentChatId(sorted.length > 0 ? sorted[0].id : null);
+            setCurrentChatId(null);
         }
-    }, [currentChatId, chatSessions]);
+    }, [currentChatId, currentUser]);
 
-    const handleClearChat = useCallback((chatId: string) => {
-        setChatSessions(prev => prev.map(c => c.id === chatId ? {...c, messages: [], visagistaResults: [], lastInteractedAt: new Date()} : c));
+    const handleClearChat = useCallback(async (chatId: string) => {
+        if (!currentUser) return;
+        // For simplicity, we just delete the chat and recreate it, or just delete messages.
+        // Deleting messages one by one is slow but works for small chats.
+        const chat = chatSessions.find(c => c.id === chatId);
+        if (!chat) return;
+        
+        for (const msg of chat.messages) {
+            await deleteDoc(doc(db, 'chats', chatId, 'messages', msg.id)).catch(() => {});
+        }
+        
+        const chatRef = doc(db, 'chats', chatId);
+        await updateDoc(chatRef, {
+            lastInteractedAt: serverTimestamp(),
+            visagistaResults: []
+        }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `chats/${chatId}`));
+        
         resetSuperPromptState();
-    }, []);
+    }, [currentUser, chatSessions]);
 
     const handleClearGallery = () => {
         if(window.confirm("Tem certeza que deseja limpar a galeria? Esta ação não pode ser desfeita.")) {
@@ -525,15 +607,15 @@ export const App = () => {
 
         if (currentSession.mode === AIMode.EditorKing && currentSession.isPhotoShootActive) {
             if (userImages && userImages.length > 0) {
-                 addMessageToChat(currentChatId, { id: uuidv4(), text: inputText.trim(), sender: MessageSender.User, createdAt: new Date(), userImages });
-                 addMessageToChat(currentChatId, { id: uuidv4(), text: 'Imagem base definida! Agora, digite seus prompts em uma lista numerada (um por linha) para iniciar o ensaio fotográfico.', sender: MessageSender.AI, createdAt: new Date() });
+                 await addMessageToChat(currentChatId, { id: uuidv4(), text: inputText.trim(), sender: MessageSender.User, createdAt: new Date(), userImages });
+                 await addMessageToChat(currentChatId, { id: uuidv4(), text: 'Imagem base definida! Agora, digite seus prompts em uma lista numerada (um por linha) para iniciar o ensaio fotográfico.', sender: MessageSender.AI, createdAt: new Date() });
                  return;
             }
 
             if (inputText.trim() && !userImages) {
                 const baseImageMessage = [...currentSession.messages].reverse().find(m => m.sender === 'user' && m.userImages && m.userImages.length > 0);
                 if (!baseImageMessage || !baseImageMessage.userImages) {
-                    addMessageToChat(currentChatId, { id: uuidv4(), text: 'Por favor, envie uma imagem primeiro para iniciar o ensaio fotográfico.', sender: MessageSender.AI, createdAt: new Date() });
+                    await addMessageToChat(currentChatId, { id: uuidv4(), text: 'Por favor, envie uma imagem primeiro para iniciar o ensaio fotográfico.', sender: MessageSender.AI, createdAt: new Date() });
                     return;
                 }
                 const baseImage = baseImageMessage.userImages[0];
@@ -541,14 +623,14 @@ export const App = () => {
                 const prompts = inputText.split('\n').map(line => line.trim()).filter(line => line && /^\d+[.)]/.test(line));
 
                 if (prompts.length === 0) {
-                    addMessageToChat(currentChatId, { id: uuidv4(), text: 'Não encontrei prompts numerados. Por favor, liste suas edições, uma por linha, começando com um número (ex: "1. Mude o fundo para uma praia").', sender: MessageSender.AI, createdAt: new Date() });
+                    await addMessageToChat(currentChatId, { id: uuidv4(), text: 'Não encontrei prompts numerados. Por favor, liste suas edições, uma por linha, começando com um número (ex: "1. Mude o fundo para uma praia").', sender: MessageSender.AI, createdAt: new Date() });
                     return;
                 }
 
-                addMessageToChat(currentChatId, { id: uuidv4(), text: inputText.trim(), sender: MessageSender.User, createdAt: new Date() });
+                await addMessageToChat(currentChatId, { id: uuidv4(), text: inputText.trim(), sender: MessageSender.User, createdAt: new Date() });
                 setIsLoading(true);
                 const aiMessageId = uuidv4();
-                addMessageToChat(currentChatId, {
+                await addMessageToChat(currentChatId, {
                     id: aiMessageId, text: `Iniciando ensaio fotográfico com ${prompts.length} edições...`, sender: MessageSender.AI,
                     isLoading: true, isGeneratingImage: true, createdAt: new Date()
                 });
@@ -580,7 +662,7 @@ export const App = () => {
                     setGeneratedImages(prev => [...prev, ...allGeneratedImages]);
                 }
 
-                updateMessageInChat(currentChatId, aiMessageId, {
+                await updateMessageInChat(currentChatId, aiMessageId, {
                     isLoading: false, isGeneratingImage: false,
                     text: errorText ? `Ensaio finalizado com alguns erros:\n${errorText}` : 'Seu ensaio fotográfico está pronto!',
                     images: allGeneratedImages,
@@ -610,7 +692,7 @@ export const App = () => {
             }
 
             const aiMessageId = uuidv4();
-            addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isGeneratingVideo: true, createdAt: new Date() });
+            await addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isGeneratingVideo: true, createdAt: new Date() });
             
             // Logic Split:
             // 9:16 -> Start/End Frame (Morphing) using Veo Fast
@@ -646,7 +728,7 @@ export const App = () => {
                 }
             }
             const aiMessageId = uuidv4();
-            addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isGeneratingVideo: true, createdAt: new Date() });
+            await addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isGeneratingVideo: true, createdAt: new Date() });
             
             // Use 16:9 for Human King Cinematic Scenes
             const response = await generateVideoFromPromptService(cleanPrompt, '16:9', undefined, userImages?.slice(0, 3)); // Limit to 3 refs for Cameo
@@ -676,28 +758,28 @@ export const App = () => {
                     editorKingBaseImage = [{ base64: lastUserImage.base64, mimeType: lastUserImage.mimeType }];
                 }
             } else {
-                 addMessageToChat(currentChatId, { id: uuidv4(), text: inputText.trim(), sender: MessageSender.User, createdAt: new Date() });
-                 addMessageToChat(currentChatId, { id: uuidv4(), text: 'Por favor, envie uma imagem para que eu possa editar.', sender: MessageSender.AI, createdAt: new Date() });
+                 await addMessageToChat(currentChatId, { id: uuidv4(), text: inputText.trim(), sender: MessageSender.User, createdAt: new Date() });
+                 await addMessageToChat(currentChatId, { id: uuidv4(), text: 'Por favor, envie uma imagem para que eu possa editar.', sender: MessageSender.AI, createdAt: new Date() });
                  return;
             }
         }
 
         if (userImages && userImages.length > 0 && !inputText.trim() && !imageGenerationPrompt && ![AIMode.KingStudio, AIMode.EditorKing, AIMode.KingLab, AIMode.HumanKing].includes(currentSession.mode)) {
-            addMessageToChat(currentChatId, { id: uuidv4(), text: '', sender: MessageSender.User, createdAt: new Date(), userImages });
-            addMessageToChat(currentChatId, { id: uuidv4(), text: 'Você enviou uma imagem. O que gostaria de fazer com ela?', sender: MessageSender.AI, createdAt: new Date() });
+            await addMessageToChat(currentChatId, { id: uuidv4(), text: '', sender: MessageSender.User, createdAt: new Date(), userImages });
+            await addMessageToChat(currentChatId, { id: uuidv4(), text: 'Você enviou uma imagem. O que gostaria de fazer com ela?', sender: MessageSender.AI, createdAt: new Date() });
             return;
         }
 
         if (!isSuperPrompt) {
             const userMessageText = userAudio ? "[Mensagem de voz]" : inputText.trim().replace(/\[.*?\]/g, ''); // Hide prefixes in UI
             if (userMessageText || userImages || userAudio) {
-                addMessageToChat(currentChatId, { id: uuidv4(), text: userMessageText, sender: MessageSender.User, createdAt: new Date(), userImages, userAudio });
+                await addMessageToChat(currentChatId, { id: uuidv4(), text: userMessageText, sender: MessageSender.User, createdAt: new Date(), userImages, userAudio });
             }
         }
         
         if (userImages && userImages.length > 0 && !inputText.trim() && !maskImage) {
             if (currentSession.mode === AIMode.EditorKing) {
-                addMessageToChat(currentChatId, {
+                await addMessageToChat(currentChatId, {
                     id: uuidv4(),
                     text: 'Imagem recebida! Agora, digite o que você quer mudar (ex: "mude o fundo para uma praia").',
                     sender: MessageSender.AI,
@@ -720,15 +802,15 @@ export const App = () => {
 
             if (currentSession.mode === AIMode.Fast && !userImages && !userAudio) {
                 aiMessageId = uuidv4();
-                addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isStreaming: true, createdAt: new Date() });
+                await addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isStreaming: true, createdAt: new Date() });
 
                 let accumulatedText = "";
                 const stream = generateFastTextResponseStream(inputText, history);
                 for await (const chunk of stream) {
                     accumulatedText += chunk;
-                    updateMessageInChat(currentChatId, aiMessageId, { text: accumulatedText });
+                    await updateMessageInChat(currentChatId, aiMessageId, { text: accumulatedText });
                 }
-                updateMessageInChat(currentChatId, aiMessageId, { isLoading: false, isStreaming: false });
+                await updateMessageInChat(currentChatId, aiMessageId, { isLoading: false, isStreaming: false });
 
             } else if (currentSession.mode === AIMode.VideoProtons) {
                 if ((window as any).aistudio?.hasSelectedApiKey && !(await (window as any).aistudio.hasSelectedApiKey())) {
@@ -749,7 +831,7 @@ export const App = () => {
                 
                 const finalAspectRatio = hasCameo ? '16:9' : (overrideAspectRatio || '16:9');
                 
-                addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isGeneratingVideo: true, createdAt: new Date(), generationAspectRatio: finalAspectRatio });
+                await addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, isGeneratingVideo: true, createdAt: new Date(), generationAspectRatio: finalAspectRatio });
                 
                 // If regular VideoProtons, we pass `videoImagesPayload` as `referenceImages` argument to our service wrapper,
                 // but inside the service we map it correctly to `image` (start) and `lastFrame` (end) for the Veo model.
@@ -759,7 +841,7 @@ export const App = () => {
                 // FIX: Narrow result type before access
                 if ('error' in response && response.error?.includes("Requested entity was not found.")) {
                     setApiKeyStatus('not_set');
-                    updateMessageInChat(currentChatId, aiMessageId, { 
+                    await updateMessageInChat(currentChatId, aiMessageId, { 
                         error: "A chave de API selecionada é inválida ou não tem faturamento ativado. Por favor, tente gerar novamente para selecionar uma chave válida.", 
                         isLoading: false, 
                         isGeneratingVideo: false 
@@ -769,10 +851,10 @@ export const App = () => {
 
                 // FIX: Type narrowing for generation result using 'in' operator
                 if ('error' in response) {
-                    updateMessageInChat(currentChatId, aiMessageId, { error: response.error, isLoading: false, isGeneratingVideo: false });
+                    await updateMessageInChat(currentChatId, aiMessageId, { error: response.error, isLoading: false, isGeneratingVideo: false });
                 } else {
                     setApiKeyStatus('ok');
-                    updateMessageInChat(currentChatId, aiMessageId, { videoUrl: response.videoUrl, text: response.text, isLoading: false, isGeneratingVideo: false });
+                    await updateMessageInChat(currentChatId, aiMessageId, { videoUrl: response.videoUrl, text: response.text, isLoading: false, isGeneratingVideo: false });
                 }
             
             } else {
@@ -785,7 +867,7 @@ export const App = () => {
 
                 const aspectRatioForAnimation = overrideAspectRatio || (inputText.match(/\b(16:9|9:16|1:1|4:3|3:4)\b/)?.[0] || '1:1');
                 
-                addMessageToChat(currentChatId, {
+                await addMessageToChat(currentChatId, {
                     id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true,
                     isGeneratingImage: shouldShowImageLoader,
                     generationAspectRatio: shouldShowImageLoader ? aspectRatioForAnimation : undefined,
@@ -808,21 +890,21 @@ export const App = () => {
                 });
 
                 if (response.error && (!response.images || response.images.length === 0)) {
-                    updateMessageInChat(currentChatId, aiMessageId, { error: response.error, isLoading: false, isGeneratingImage: false, text: response.text || response.error });
+                    await updateMessageInChat(currentChatId, aiMessageId, { error: response.error, isLoading: false, isGeneratingImage: false, text: response.text || response.error });
                 } else if (response.images && response.images.length > 0) {
                     setGeneratedImages(prev => [...prev, ...response.images!]);
-                    updateMessageInChat(currentChatId, aiMessageId, {
+                    await updateMessageInChat(currentChatId, aiMessageId, {
                         isLoading: false, isGeneratingImage: false, text: response.text || '', images: response.images,
                         source: response.source, createdAt: new Date()
                     });
                 } else if (response.svgContent) {
-                    updateMessageInChat(currentChatId, aiMessageId, { isLoading: false, isGeneratingImage: false, text: `Aqui está o logo SVG que você pediu.`, svgContent: response.svgContent, svgFilename: response.svgFilename });
+                    await updateMessageInChat(currentChatId, aiMessageId, { isLoading: false, isGeneratingImage: false, text: `Aqui está o logo SVG que você pediu.`, svgContent: response.svgContent, svgFilename: response.svgFilename });
                 } else {
                     const finalUpdate: Partial<Message> = { isLoading: false, isGeneratingImage: false };
                     if (response.text) finalUpdate.text = response.text;
                     if (response.groundingChunks) finalUpdate.groundingChunks = response.groundingChunks;
                     if (response.formRequest) finalUpdate.formRequest = response.formRequest;
-                    updateMessageInChat(currentChatId, aiMessageId, finalUpdate);
+                    await updateMessageInChat(currentChatId, aiMessageId, finalUpdate);
                 }
 
                 if (response.text && (currentSession.mode === AIMode.Ultra || currentSession.mode === AIMode.AgentChat)) {
@@ -830,7 +912,7 @@ export const App = () => {
                         const ttsResponse = await generateTtsAudio(response.text);
                         if (ttsResponse.audioBase64) {
                             const audioUrl = `data:audio/mp3;base64,${ttsResponse.audioBase64}`;
-                            updateMessageInChat(currentChatId, aiMessageId, { generatedAudioUrl: audioUrl });
+                            await updateMessageInChat(currentChatId, aiMessageId, { generatedAudioUrl: audioUrl });
                         }
                     } catch (ttsError) {
                         console.error("Erro na geração de TTS:", ttsError);
@@ -842,7 +924,7 @@ export const App = () => {
             lastError = error;
         } finally {
             if (lastError && aiMessageId) {
-                updateMessageInChat(currentChatId, aiMessageId, { 
+                await updateMessageInChat(currentChatId, aiMessageId, { 
                     error: lastError instanceof Error ? lastError.message : String(lastError), 
                     isLoading: false, isGeneratingImage: false, isGeneratingVideo: false, isStreaming: false
                 });
@@ -856,7 +938,7 @@ export const App = () => {
 
     const handleFormSubmit = async (messageId: string, formData: any) => {
         if (!currentChatId) return;
-        updateMessageInChat(currentChatId, messageId, { formResponse: formData });
+        await updateMessageInChat(currentChatId, messageId, { formResponse: formData });
         const summaryLines = Object.entries(formData).map(([key, value]) => `- ${key}: ${value}`);
         const summaryText = `O usuário preencheu o formulário com os seguintes dados:\n${summaryLines.join('\n')}\n\nContinue a partir daqui.`;
         await handleSendMessage(summaryText);
@@ -880,14 +962,14 @@ export const App = () => {
         
         setIsLoading(true);
         const aiMessageId = uuidv4();
-        addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, createdAt: new Date() });
+        await addMessageToChat(currentChatId, { id: aiMessageId, text: '', sender: MessageSender.AI, isLoading: true, createdAt: new Date() });
 
         const { svgContent, svgFilename, error } = await generateSvgFromDescription(targetImage.prompt);
         
         if (error) {
-            updateMessageInChat(currentChatId, aiMessageId, { text: "Não foi possível gerar o SVG.", error: error, isLoading: false });
+            await updateMessageInChat(currentChatId, aiMessageId, { text: "Não foi possível gerar o SVG.", error: error, isLoading: false });
         } else if (svgContent && svgFilename) {
-            updateMessageInChat(currentChatId, aiMessageId, {
+            await updateMessageInChat(currentChatId, aiMessageId, {
                 text: "Aqui está o logo em formato SVG vetorial.",
                 svgContent: svgContent,
                 svgFilename: svgFilename,
@@ -906,7 +988,7 @@ export const App = () => {
             return;
         }
         
-        handleSendMessage(
+        await handleSendMessage(
             targetImage.originalUserPrompt || targetImage.prompt, 
             targetImage.prompt, 
             undefined, 
@@ -920,41 +1002,52 @@ export const App = () => {
         );
     };
 
-    const handleSendPreGenerated = useCallback((prompt: string, image: GeneratedImage) => {
+    const handleSendPreGenerated = useCallback(async (prompt: string, image: GeneratedImage) => {
         if (!currentChatId) return;
         setGeneratedImages(prev => [...prev, image]);
         const userMessage = { id: uuidv4(), text: prompt, sender: MessageSender.User, createdAt: new Date() };
-        addMessageToChat(currentChatId, userMessage);
+        await addMessageToChat(currentChatId, userMessage);
         const aiMessage = { id: image.id, text: '', sender: MessageSender.AI, createdAt: image.createdAt, images: [image] };
-        addMessageToChat(currentChatId, aiMessage);
+        await addMessageToChat(currentChatId, aiMessage);
     }, [currentChatId, addMessageToChat]);
 
-    const handleCanvasAccept = (image: GeneratedImage) => {
-        handleSendPreGenerated("Imagem criada a partir do seu esboço no Estúdio Mágico.", image);
+    const handleCanvasAccept = async (image: GeneratedImage) => {
+        await handleSendPreGenerated("Imagem criada a partir do seu esboço no Estúdio Mágico.", image);
     };
 
-    const handleEditMessage = (chatId: string, messageId: string, newText: string) => {
+    const handleEditMessage = async (chatId: string, messageId: string, newText: string) => {
         const chat = chatSessions.find(c => c.id === chatId);
         if (!chat) return;
 
         const messageIndex = chat.messages.findIndex(m => m.id === messageId);
         if (messageIndex === -1) return;
 
-        const forkedMessages = chat.messages.slice(0, messageIndex);
+        // Messages to delete (from messageIndex to the end)
+        const messagesToDelete = chat.messages.slice(messageIndex);
         
-        setChatSessions(prev =>
-            prev.map(c =>
-                c.id === chatId
-                    ? { ...c, messages: forkedMessages, lastInteractedAt: new Date() }
-                    : c
-            )
-        );
+        const batch = writeBatch(db);
+        messagesToDelete.forEach(msg => {
+            const msgRef = doc(db, 'chats', chatId, 'messages', msg.id);
+            batch.delete(msgRef);
+        });
 
-        handleSendMessage(newText);
+        try {
+            await batch.commit();
+            
+            // We need to update the chat's lastInteractedAt
+            const chatRef = doc(db, 'chats', chatId);
+            await updateDoc(chatRef, {
+                lastInteractedAt: serverTimestamp()
+            }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `chats/${chatId}`));
+
+            await handleSendMessage(newText);
+        } catch (err) {
+            handleFirestoreError(err, OperationType.DELETE, `chats/${chatId}/messages`);
+        }
     };
 
-    const handleMessageFeedback = (chatId: string, messageId: string, feedback: 'liked' | 'disliked') => {
-        updateMessageInChat(chatId, messageId, { feedback });
+    const handleMessageFeedback = async (chatId: string, messageId: string, feedback: 'liked' | 'disliked') => {
+        await updateMessageInChat(chatId, messageId, { feedback });
     };
 
     const handleOpenImagePreview = (images: GeneratedImage[], startIndex: number) => {
@@ -973,9 +1066,11 @@ export const App = () => {
 
         // FIX: Narrow result type before accessing 'results' or 'error'
         if ('results' in result && result.results) {
-            setChatSessions(prev => prev.map(chat => 
-                chat.id === currentChatId ? { ...chat, visagistaResults: result.results || [], lastInteractedAt: new Date() } : chat
-            ));
+            const chatRef = doc(db, 'chats', currentChatId);
+            await updateDoc(chatRef, {
+                visagistaResults: result.results || [],
+                lastInteractedAt: serverTimestamp()
+            }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `chats/${currentChatId}`));
         }
 
         if ('error' in result) {
@@ -986,62 +1081,24 @@ export const App = () => {
         setVisagistaLoadingMessage('');
     };
 
-    const handleLogin = (username: string, password?: string) => {
-        let savedUsers: any = {};
+    const handleLogin = async () => {
         try {
-            const savedUsersRaw = localStorage.getItem('protons-ai-all-users');
-            savedUsers = savedUsersRaw ? JSON.parse(savedUsersRaw) : {};
-        } catch (e) {
-            console.error("Erro ao carregar todos os usuários", e);
-        }
-        
-        if (savedUsers[username] && savedUsers[username].passwordHash === password) { 
-          const user = { 
-              username, 
-              passwordHash: savedUsers[username].passwordHash,
-          };
-          setCurrentUser(user);
-          try {
-            localStorage.setItem('protons-ai-user', JSON.stringify(user));
-          } catch (e) {
-            console.error("Erro ao salvar usuário logado", e);
-          }
-          setAuthError(null);
-        } else {
-          setAuthError('Nome de usuário ou senha inválidos.');
+            setAuthError(null);
+            await signInWithPopup(auth, googleProvider);
+        } catch (err: any) {
+            console.error("Erro no login Google:", err);
+            setAuthError("Falha ao entrar com Google. Tente novamente.");
         }
     };
 
-    const handleSignup = (username: string, password?: string) => {
-        if (!password) {
-            setAuthError("Senha é obrigatória.");
-            return;
-        }
-        let savedUsers: any = {};
-        try {
-            const savedUsersRaw = localStorage.getItem('protons-ai-all-users');
-            savedUsers = savedUsersRaw ? JSON.parse(savedUsersRaw) : {};
-        } catch (e) {
-            console.error("Erro ao carregar todos os usuários para cadastro", e);
-        }
+    const handleSignup = handleLogin;
 
-        if (savedUsers[username]) {
-            setAuthError('Este nome de usuário já está em uso.');
-        } else {
-            const newUser: User = { 
-                username, 
-                passwordHash: password,
-            }; 
-            savedUsers[username] = newUser;
-            try {
-                localStorage.setItem('protons-ai-all-users', JSON.stringify(savedUsers));
-                setCurrentUser(newUser);
-                localStorage.setItem('protons-ai-user', JSON.stringify(newUser));
-                setAuthError(null);
-            } catch (e) {
-                console.error("Erro ao salvar novo usuário (Quota excedida?)", e);
-                setAuthError("Erro ao criar conta. Armazenamento local cheio.");
-            }
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            setCurrentChatId(null);
+        } catch (err) {
+            console.error("Erro ao sair:", err);
         }
     };
 
@@ -1049,16 +1106,6 @@ export const App = () => {
         (window as any).toggleSidebar = () => setIsSidebarOpen(prev => !prev);
         (window as any).handleNewChat = () => handleNewChat(AIMode.Ultra);
     }, []);
-
-    const handleLogout = () => {
-        setCurrentUser(null);
-        localStorage.removeItem('protons-ai-user');
-        setChatSessions([]);
-        setAgents([]);
-        setCurrentChatId(null);
-        setGeneratedImages([]);
-        setCameoProfile(null);
-    };
 
     if (!isAppStarted) {
         return <SplashScreen onStart={handleStartApp} />;

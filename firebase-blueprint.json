@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastLoginAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "A chat session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "model": { "type": "string" },
+        "agentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastInteractedAt": { "type": "string", "format": "date-time" },
+        "isArchived": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "title", "createdAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A message in a chat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "chatId": { "type": "string" },
+        "userId": { "type": "string" },
+        "text": { "type": "string" },
+        "sender": { "type": "string", "enum": ["user", "ai"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userImages": { "type": "array", "items": { "type": "object" } },
+        "aiImages": { "type": "array", "items": { "type": "object" } },
+        "userAudio": { "type": "object" },
+        "feedback": { "type": "string", "enum": ["liked", "disliked"] }
+      },
+      "required": ["id", "chatId", "userId", "sender", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Chat session documents"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages within a chat"
+    }
+  }
+}

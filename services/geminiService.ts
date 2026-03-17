@@ -20,7 +20,8 @@ const getErrorCode = (error: any): number => {
 };
 
 const getErrorMessage = (error: any): string => {
-    const msg = error?.message || error?.error?.message || error?.statusText || "";
+    if (typeof error === 'string') return error.toLowerCase();
+    const msg = error?.message || error?.error?.message || error?.statusText || (error?.error ? JSON.stringify(error.error) : "");
     return msg.toLowerCase();
 };
 
@@ -175,6 +176,11 @@ async function generateNanoBananaImage(ai: any, prompt: string, userImages?: { b
             console.error("Erro na chamada da API Gemini (Nano Banana):", err);
             const status = getErrorCode(err);
             const msg = getErrorMessage(err);
+            
+            if (status === 400 && (msg.includes('paid plans') || msg.includes('upgrade your account'))) {
+                throw new Error("A geração de imagens (Imagen/Nano Banana) requer uma conta com faturamento configurado (Plano Pago) no Google AI Studio. O plano gratuito não suporta geração de imagens no momento.");
+            }
+            
             if (status === 403) throw new Error("Acesso negado. Verifique se sua chave de API tem permissão para o modelo Gemini 2.5 Flash Image.");
             if (status === 429) throw new Error("Limite de cota atingido para geração de imagens.");
             if (status === 0) throw new Error("Erro de rede ao conectar com a API de imagens. Verifique sua conexão.");
@@ -249,8 +255,11 @@ export const generateResponse = async (options: {
                     return { images, text: "Geração concluída.", source: 'gemini' };
                 } catch (err: any) {
                     const status = getErrorCode(err);
-                    if (status === 403 || status === 429) {
-                        console.warn("Acesso negado ao Imagen. Usando Nano Banana...");
+                    const msg = getErrorMessage(err);
+                    const isPaidPlanError = status === 400 && (msg.includes('paid plans') || msg.includes('upgrade your account'));
+                    
+                    if (status === 403 || status === 429 || isPaidPlanError) {
+                        console.warn(`Acesso negado ou restrito ao Imagen (${status}). Usando Nano Banana como fallback...`);
                         return await generateNanoBananaImage(ai, prompt, userImages, undefined, false, '1:1', numberOfImages);
                     }
                     throw err;
@@ -285,9 +294,14 @@ export const generateResponse = async (options: {
     } catch (error: any) {
         const status = getErrorCode(error);
         const msg = getErrorMessage(error);
+        
+        if (status === 400 && (msg.includes('paid plans') || msg.includes('upgrade your account'))) {
+            return { error: 'A geração de imagens requer um Plano Pago no Google AI Studio. Por favor, configure o faturamento em ai.google.dev/pricing' };
+        }
+        
         if (status === 403) return { error: 'Sua chave de API não possui permissão para modelos Pro ou Imagen. Verifique se o faturamento está configurado no Google AI Studio.' };
         if (status === 429 || msg.includes('quota')) return { error: 'Limite de créditos atingido. Aguarde alguns minutos.' };
-        return { error: `Erro no laboratório: ${msg || error.message || 'Falha na conexão'}` };
+        return { error: `Erro no sistema: ${msg || error.message || 'Falha na conexão'}` };
     }
 };
 
