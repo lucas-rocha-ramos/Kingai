@@ -1,0 +1,409 @@
+
+import React, { useState, useRef, useEffect } from 'react';
+import { AIMode, GenerationTools, GeneratedImage } from '../types'; 
+import { 
+    Paperclip, Send, X, Settings2, Lightbulb, 
+    Telescope, Sparkles, Globe, Pencil, Image as ImageIcon, 
+    Camera, Mic, Video, Brush, Plus
+} from 'lucide-react';
+import CameraModal from './CameraModal';
+import MaskingModal from './MaskingModal';
+
+interface ChatInputProps {
+  onSendMessage: (
+    inputText: string,
+    imageGenerationPrompt?: string,
+    userImages?: { base64: string; mimeType: string }[],
+    userAudio?: { base64: string; mimeType: string },
+    trueOriginalUserImagePromptForVariation?: string,
+    numberOfImages?: number,
+    tools?: GenerationTools,
+    imageSource?: 'upload' | 'canvas',
+    isSuperPrompt?: boolean,
+    overrideAspectRatio?: string,
+    maskImage?: { base64: string; mimeType: string; }
+  ) => void;
+  onSendPreGenerated: (prompt: string, image: GeneratedImage) => void;
+  isLoading: boolean;
+  currentMode: AIMode;
+  isPhotoShootActive?: boolean;
+  hasPhotoShootBaseImage?: boolean;
+  pendingVariationInput?: {
+    enhancedPrompt: string;
+    referenceImageBase64?: string;
+    referenceImageMimeType?: string;
+    lineageOriginalUserPrompt?: string;
+  } | null;
+  superPromptStatus: 'idle' | 'describing' | 'awaiting_user_feedback' | 'unifying';
+  isCanvasOpen: boolean;
+  setIsCanvasOpen: (isOpen: boolean) => void;
+}
+
+export const ChatInput: React.FC<ChatInputProps> = ({
+  onSendMessage, onSendPreGenerated, isLoading, currentMode,
+  isPhotoShootActive,
+  hasPhotoShootBaseImage,
+  pendingVariationInput,
+  superPromptStatus,
+  isCanvasOpen,
+  setIsCanvasOpen,
+}) => {
+  const [text, setText] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [selectedFilePreviews, setSelectedFilePreviews] = useState<string[]>([]);
+  const [imageSource, setImageSource] = useState<'upload' | 'canvas' | null>(null);
+  const [numberOfImagesToGenerate, setNumberOfImagesToGenerate] = useState<number>(1);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+  const [isMaskingModalOpen, setIsMaskingModalOpen] = useState(false);
+  const [maskBase64, setMaskBase64] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  
+  // Audio recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
+  
+  // Tools state
+  const [webSearch, setWebSearch] = useState(false);
+  const [thinkLonger, setThinkLonger] = useState(false);
+  const [forceImage, setForceImage] = useState(false);
+
+  const canAttachFile = (currentMode === AIMode.Ultra || currentMode === AIMode.DesignStudio || currentMode === AIMode.AgentChat || currentMode === AIMode.VideoProtons || currentMode === AIMode.KingStudio || currentMode === AIMode.EditorKing) && !pendingVariationInput && superPromptStatus === 'idle';
+  const canRecordAudio = (currentMode === AIMode.Ultra || currentMode === AIMode.AgentChat);
+
+  useEffect(() => {
+    if (!isLoading && !isRecording) {
+      textareaRef.current?.focus();
+    }
+  }, [isLoading, isRecording]);
+
+  useEffect(() => {
+    if (!pendingVariationInput && superPromptStatus === 'idle') {
+        const canGenerateImages = currentMode === AIMode.Ultra || currentMode === AIMode.DesignStudio || currentMode === AIMode.AgentChat;
+        if (!canGenerateImages) {
+            setNumberOfImagesToGenerate(1); 
+        }
+        setText('');
+        setSelectedFiles([]); 
+        setSelectedFilePreviews([]);
+        setMaskBase64(null);
+        setImageSource(null);
+        setWebSearch(false);
+        setThinkLonger(false);
+        setForceImage(false);
+        if (textareaRef.current) { textareaRef.current.style.height = 'auto'; }
+    }
+  }, [currentMode, pendingVariationInput, superPromptStatus]); 
+
+  const getPlaceholderText = () => {
+    if (isPhotoShootActive) {
+        return hasPhotoShootBaseImage ? 'Digite os prompts numerados...' : 'Envie uma imagem para o ensaio...';
+    }
+    if (maskBase64) return "O que você deseja mudar?";
+    if (superPromptStatus === 'awaiting_user_feedback') return "Digite suas modificações...";
+    if (pendingVariationInput) return "Edite o prompt..."; 
+    if (currentMode === AIMode.VideoProtons) return "Descreva seu vídeo...";
+    return "Digite algo aqui";
+  };
+
+  const processImageFiles = (files: FileList | null) => {
+    if (pendingVariationInput || superPromptStatus !== 'idle' || !files) return;
+    
+    // In EditorKing mode, we only allow one image at a time for masking
+    if (currentMode === AIMode.EditorKing) {
+      const file = files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setSelectedFiles([file]);
+          setSelectedFilePreviews([e.target!.result as string]);
+          setImageSource('upload');
+          setIsMaskingModalOpen(true);
+        }
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setSelectedFiles(f => [...f, file]);
+          setSelectedFilePreviews(p => [...p, e.target!.result as string]);
+          setImageSource('upload');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    processImageFiles(e.target.files);
+    e.target.value = '';
+  };
+
+  const handleSubmit = (e?: React.FormEvent, audioData?: { base64: string, mimeType: string }) => {
+    e?.preventDefault();
+    if (isLoading || (!text.trim() && selectedFiles.length === 0 && !audioData)) return; 
+    
+    const mainInputText = text.trim();
+    let userImagesPayload: { base64: string; mimeType: string }[] | undefined = undefined;
+    let maskPayload: { base64: string; mimeType: string } | undefined = undefined;
+
+    if (audioData) {
+        onSendMessage(mainInputText, undefined, undefined, audioData);
+    } else if (selectedFiles.length > 0) {
+      userImagesPayload = selectedFilePreviews.map((preview, index) => ({
+          base64: preview.split(',')[1],
+          mimeType: selectedFiles[index].type
+      }));
+      if (maskBase64) {
+          maskPayload = { base64: maskBase64, mimeType: 'image/png' };
+      }
+      onSendMessage(mainInputText, undefined, userImagesPayload, undefined, undefined, numberOfImagesToGenerate, { webSearch, thinkLonger, forceImage }, imageSource || 'upload', false, undefined, maskPayload);
+    } else {
+      onSendMessage(mainInputText, (currentMode === AIMode.DesignStudio ? mainInputText : undefined), undefined, undefined, undefined, numberOfImagesToGenerate, { webSearch, thinkLonger, forceImage });
+    }
+
+    setText('');
+    setSelectedFiles([]);
+    setSelectedFilePreviews([]);
+    setMaskBase64(null);
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+  };
+  
+  const startRecording = async () => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        mediaRecorderRef.current.ondataavailable = event => audioChunksRef.current.push(event.data);
+        mediaRecorderRef.current.onstop = () => {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = (reader.result as string).split(',')[1];
+                handleSubmit(undefined, { base64: base64String, mimeType: 'audio/webm' });
+            };
+            reader.readAsDataURL(audioBlob);
+            stream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+        setRecordingTime(0);
+        recordingTimerRef.current = window.setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+    } catch (err) { alert("Erro ao acessar microfone."); }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) mediaRecorderRef.current.stop();
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    setIsRecording(false);
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto px-4 pb-6 pt-2">
+        <div className="relative flex flex-col bg-panel rounded-none border border-border shadow-lg transition-all focus-within:border-highlight/50 focus-within:shadow-[0_0_20px_rgba(0,255,0,0.05)] overflow-hidden">
+            
+            {/* Image Previews */}
+            {selectedFilePreviews.length > 0 && (
+                <div className="flex gap-3 p-4 overflow-x-auto custom-scrollbar border-b border-border/50 bg-black/10">
+                    {selectedFilePreviews.map((preview, index) => (
+                        <div key={index} className="relative group flex-shrink-0">
+                            <img src={preview} className="h-20 w-20 object-cover rounded-none border border-border shadow-sm" alt="" />
+                            
+                            {currentMode === AIMode.EditorKing && (
+                                <button 
+                                    onClick={() => setIsMaskingModalOpen(true)}
+                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-none"
+                                    title="Editar máscara"
+                                >
+                                    <Brush className="w-6 h-6 text-white" />
+                                </button>
+                            )}
+
+                            <button 
+                                onClick={() => {
+                                    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+                                    setSelectedFilePreviews(prev => prev.filter((_, i) => i !== index));
+                                    if (currentMode === AIMode.EditorKing) setMaskBase64(null);
+                                }}
+                                className="absolute -top-2 -right-2 bg-background text-white rounded-none p-1.5 border border-border opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-danger"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    ))}
+                    
+                    {currentMode === AIMode.EditorKing && maskBase64 && (
+                        <div className="flex flex-col justify-center px-2">
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-highlight uppercase tracking-wider bg-highlight/10 px-3 py-1.5 rounded-none border border-highlight/20">
+                                <Brush className="w-3 h-3" />
+                                Área Selecionada
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="flex flex-col">
+                <div className="flex items-end gap-2 p-4">
+                    {/* Left Actions */}
+                    <div className="flex items-center gap-1 mb-1">
+                        {canAttachFile && (
+                            <>
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" multiple />
+                                <button 
+                                    type="button" 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="p-2.5 text-text-secondary hover:text-highlight hover:bg-surface rounded-none transition-all"
+                                    title="Anexar imagem"
+                                >
+                                    <Plus className="w-6 h-6" />
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Textarea */}
+                    <div className="flex-1 min-w-0 py-2">
+                        {isRecording ? (
+                            <div className="flex items-center gap-4 px-3 py-1 bg-highlight/5 rounded-none border border-highlight/20">
+                                <div className="w-2.5 h-2.5 bg-red-500 rounded-none animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                                <span className="text-sm font-mono text-highlight tracking-wider">
+                                    {new Date(recordingTime * 1000).toISOString().substr(14, 5)}
+                                </span>
+                                <button type="button" onClick={stopRecording} className="text-xs text-highlight font-bold uppercase tracking-tighter hover:underline ml-auto">Parar</button>
+                            </div>
+                        ) : (
+                            <textarea
+                                ref={textareaRef}
+                                value={text}
+                                onChange={(e) => {
+                                    setText(e.target.value);
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSubmit();
+                                    }
+                                }}
+                                placeholder={getPlaceholderText()}
+                                className="w-full bg-transparent border-none focus:ring-0 text-text-primary placeholder-[#9aa0a6] text-base resize-none max-h-[200px] custom-scrollbar py-1 leading-relaxed"
+                                rows={1}
+                                disabled={isLoading}
+                            />
+                        )}
+                    </div>
+
+                    {/* Right Actions */}
+                    <div className="flex items-center gap-1 mb-1">
+                        {canRecordAudio && !text.trim() && selectedFiles.length === 0 && (
+                            <button 
+                                type="button"
+                                onMouseDown={startRecording}
+                                onMouseUp={stopRecording}
+                                className={`p-2.5 rounded-none transition-all ${isRecording ? 'text-red-500 bg-red-500/10 shadow-inner' : 'text-text-secondary hover:text-highlight hover:bg-surface'}`}
+                                title="Gravar áudio"
+                            >
+                                <Mic className="w-6 h-6" />
+                            </button>
+                        )}
+                        
+                        <button 
+                            type="submit"
+                            disabled={isLoading || (!text.trim() && selectedFiles.length === 0)}
+                            className={`p-2.5 rounded-none transition-all ${(!text.trim() && selectedFiles.length === 0) ? 'text-border opacity-50' : 'text-highlight hover:bg-highlight/10 shadow-sm'}`}
+                            title="Enviar mensagem"
+                        >
+                            <Send className="w-6 h-6" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Bottom Tools Bar */}
+                <div className="flex items-center justify-between px-5 py-2.5 border-t border-border/30 bg-black/5">
+                    <div className="flex items-center gap-5">
+                        <button 
+                            type="button"
+                            onClick={() => setWebSearch(!webSearch)}
+                            className={`flex items-center gap-2 text-xs font-semibold transition-all ${webSearch ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
+                            title="Pesquisa Google em tempo real"
+                        >
+                            <Globe className="w-4 h-4" />
+                            <span>Pesquisa</span>
+                        </button>
+
+                        {currentMode === AIMode.Ultra && (
+                            <button 
+                                type="button"
+                                onClick={() => setThinkLonger(!thinkLonger)}
+                                className={`flex items-center gap-2 text-xs font-semibold transition-all ${thinkLonger ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
+                                title="Raciocínio profundo e detalhado"
+                            >
+                                <Lightbulb className="w-4 h-4" />
+                                <span>Pensar +</span>
+                            </button>
+                        )}
+
+                        {(currentMode === AIMode.Ultra || currentMode === AIMode.DesignStudio) && (
+                            <>
+                                <button 
+                                    type="button"
+                                    onClick={() => setForceImage(!forceImage)}
+                                    className={`flex items-center gap-2 text-xs font-semibold transition-all ${forceImage ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
+                                    title="Forçar geração de imagem"
+                                >
+                                    <Sparkles className="w-4 h-4" />
+                                    <span>Imagem</span>
+                                </button>
+
+                                <div className="flex items-center gap-2 text-text-secondary border-l border-border/30 pl-5">
+                                    <ImageIcon className="w-4 h-4" />
+                                    <select 
+                                        value={numberOfImagesToGenerate} 
+                                        onChange={(e) => setNumberOfImagesToGenerate(Number(e.target.value))}
+                                        className="bg-transparent border-none text-[10px] font-bold p-0 focus:ring-0 cursor-pointer uppercase tracking-wider font-mono"
+                                    >
+                                        <option value="1">1 Imagem</option>
+                                        <option value="2">2 Imagens</option>
+                                        <option value="4">4 Imagens</option>
+                                    </select>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                    
+                    <div className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em] opacity-70 font-mono">
+                        {currentMode}
+                    </div>
+                </div>
+            </form>
+        </div>
+        <p className="text-center text-[10px] text-[#5f6368] mt-3 px-4">
+            Protons AI pode exibir informações imprecisas, inclusive sobre pessoas, por isso cheque as respostas.
+        </p>
+
+        {isMaskingModalOpen && selectedFilePreviews[0] && (
+            <MaskingModal 
+                isOpen={isMaskingModalOpen}
+                onClose={() => setIsMaskingModalOpen(false)}
+                image={{ 
+                    base64: selectedFilePreviews[0].split(',')[1], 
+                    mimeType: selectedFiles[0]?.type || 'image/png' 
+                }}
+                onSaveMask={(mask) => setMaskBase64(mask)}
+            />
+        )}
+    </div>
+  );
+};

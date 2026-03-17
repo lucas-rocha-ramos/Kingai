@@ -1,0 +1,9 @@
+{
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "name": "Protons AI",
+  "description": "Plataforma avançada de IA para geração de imagens, vídeos e chat inteligente.",
+  "prompt": ""
+}

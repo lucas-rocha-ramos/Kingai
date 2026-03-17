@@ -1,11 +1,26 @@
-<div align="center">
+# Protons AI
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Plataforma avançada de IA para geração de imagens, vídeos e chat inteligente.
 
-  <h1>Built with AI Studio</h2>
+## Como hospedar no Vercel
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+1.  Crie um repositório no GitHub e faça o push deste código.
+2.  Conecte seu repositório ao Vercel.
+3.  Nas configurações do projeto no Vercel, adicione a seguinte variável de ambiente:
+    *   `GEMINI_API_KEY`: Sua chave de API do Google AI Studio.
+4.  O Vercel detectará automaticamente as configurações do Vite e fará o deploy.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Configuração Local
 
-</div>
+1.  Clone o repositório.
+2.  Instale as dependências: `npm install`.
+3.  Crie um arquivo `.env` baseado no `.env.example` e adicione sua chave.
+4.  Inicie o servidor de desenvolvimento: `npm run dev`.
+
+## Tecnologias Utilizadas
+
+*   React 19
+*   Vite
+*   Tailwind CSS 4
+*   Motion (Framer Motion)
+*   Google Gemini API (@google/genai)

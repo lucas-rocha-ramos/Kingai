@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "JetBrains Mono", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-background: #0a0a0a;
+  --color-surface: #121212;
+  --color-panel: #1a1a1a;
+  --color-border: #00ff0033;
+  --color-text-primary: #00ff00;
+  --color-text-secondary: #00cc00;
+  --color-highlight: #00ff00;
+  --color-highlight-hover: #33ff33;
+  --color-accent: #00ff00;
+  --color-danger: #ff0000;
+  --color-success: #00ff00;
+  --color-link: #00ff00;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary font-mono antialiased overflow-hidden;
+    background-image: radial-gradient(circle at 50% 50%, #00ff0005 0%, transparent 80%);
+  }
+
+  body::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 9999;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+  }
+}
+
+@layer components {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-highlight/20 rounded-full hover:bg-highlight/40 transition-colors;
+  }
+
+  .gemini-input-container {
+    @apply relative flex items-center bg-surface rounded-none px-6 py-3 border border-highlight/30 focus-within:border-highlight transition-all shadow-[0_0_15px_rgba(0,255,0,0.1)];
+  }
+
+  .gemini-card {
+    @apply bg-surface border border-highlight/20 rounded-none p-6 hover:bg-panel transition-all duration-300 cursor-pointer shadow-sm hover:shadow-[0_0_20px_rgba(0,255,0,0.15)] flex flex-col justify-between h-52 text-left relative overflow-hidden;
+  }
+
+  .gemini-card::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-highlight/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-none text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-panel text-text-secondary hover:text-text-primary border-l-2 border-transparent hover:border-highlight;
+  }
+
+  .sidebar-item-active {
+    @apply bg-panel text-highlight border-l-2 border-highlight shadow-[inset_0_0_10px_rgba(0,255,0,0.05)];
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+/* Video generation animation styles */
+.film-strip-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    background: radial-gradient(circle, rgba(138, 180, 248, 0.05) 0%, rgba(138, 180, 248, 0) 60%);
+}
+
+.film-strip {
+    display: flex;
+    width: 200%;
+    animation: scroll-film 10s linear infinite;
+}
+
+@keyframes scroll-film {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+.frame {
+    width: 140px;
+    height: 80px;
+    background-color: rgba(18, 18, 18, 0.8);
+    border: 1px solid var(--color-border);
+    margin: 0 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    opacity: 0.7;
+    border-radius: 0;
+}
+
+.frame::before, .frame::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    height: 6px;
+    background-image: repeating-linear-gradient(to right, transparent, transparent 5px, var(--color-border) 5px, var(--color-border) 8px);
+    background-size: 13px 6px;
+}
+.frame::before { top: 4px; }
+.frame::after { bottom: 4px; }
+
+.frame-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--color-highlight);
+    opacity: 0;
+    animation: flicker 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 0.1; filter: blur(1px); }
+    50% { opacity: 0.6; filter: blur(0); }
+}
