@@ -80,14 +80,26 @@ export const App = () => {
             if (user) {
                 // Sync user profile to Firestore
                 const userRef = doc(db, 'users', user.uid);
-                setDoc(userRef, {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    lastLoginAt: serverTimestamp(),
-                    createdAt: serverTimestamp() // setDoc with merge or check existence
-                }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`));
+                
+                // Use a more robust sync: check if exists first to avoid overwriting createdAt
+                getDoc(userRef).then((docSnap) => {
+                    if (!docSnap.exists()) {
+                        setDoc(userRef, {
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName,
+                            photoURL: user.photoURL,
+                            lastLoginAt: serverTimestamp(),
+                            createdAt: serverTimestamp()
+                        }).catch(err => handleFirestoreError(err, OperationType.CREATE, `users/${user.uid}`));
+                    } else {
+                        updateDoc(userRef, {
+                            lastLoginAt: serverTimestamp(),
+                            displayName: user.displayName || docSnap.data().displayName,
+                            photoURL: user.photoURL || docSnap.data().photoURL,
+                        }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`));
+                    }
+                }).catch(err => handleFirestoreError(err, OperationType.GET, `users/${user.uid}`));
             }
         });
         
