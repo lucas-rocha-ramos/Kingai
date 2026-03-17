@@ -2,27 +2,29 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "JetBrains Mono", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-background: #0a0a0a;
-  --color-surface: #121212;
-  --color-panel: #1a1a1a;
-  --color-border: #00ff0033;
-  --color-text-primary: #00ff00;
-  --color-text-secondary: #00cc00;
+  --color-background: #000000;
+  --color-surface: rgba(18, 18, 18, 0.7);
+  --color-panel: rgba(28, 28, 28, 0.6);
+  --color-border: rgba(0, 255, 0, 0.15);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1a6;
   --color-highlight: #00ff00;
   --color-highlight-hover: #33ff33;
   --color-accent: #00ff00;
-  --color-danger: #ff0000;
-  --color-success: #00ff00;
+  --color-danger: #ff453a;
+  --color-success: #32d74b;
   --color-link: #00ff00;
 }
 
 @layer base {
   body {
-    @apply bg-background text-text-primary font-mono antialiased overflow-hidden;
-    background-image: radial-gradient(circle at 50% 50%, #00ff0005 0%, transparent 80%);
+    @apply bg-background text-text-primary font-sans antialiased overflow-hidden;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(0, 255, 0, 0.03) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(0, 255, 0, 0.03) 0%, transparent 40%);
   }
 
   body::before {
@@ -33,43 +35,64 @@
     left: 0;
     bottom: 0;
     right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.005), rgba(0, 255, 0, 0.01));
     z-index: 9999;
-    background-size: 100% 2px, 3px 100%;
+    background-size: 100% 4px, 4px 100%;
     pointer-events: none;
+    opacity: 0.3;
   }
 }
 
 @layer components {
   .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-highlight/20 rounded-full hover:bg-highlight/40 transition-colors;
+    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+  }
+
+  .glass-panel {
+    @apply bg-panel backdrop-blur-2xl border border-white/10 shadow-2xl;
   }
 
   .gemini-input-container {
-    @apply relative flex items-center bg-surface rounded-none px-6 py-3 border border-highlight/30 focus-within:border-highlight transition-all shadow-[0_0_15px_rgba(0,255,0,0.1)];
+    @apply relative flex items-center bg-white/5 backdrop-blur-xl rounded-3xl px-6 py-4 border border-white/10 focus-within:border-highlight/50 transition-all shadow-2xl;
   }
 
   .gemini-card {
-    @apply bg-surface border border-highlight/20 rounded-none p-6 hover:bg-panel transition-all duration-300 cursor-pointer shadow-sm hover:shadow-[0_0_20px_rgba(0,255,0,0.15)] flex flex-col justify-between h-52 text-left relative overflow-hidden;
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all duration-500 cursor-pointer shadow-xl hover:shadow-highlight/5 flex flex-col justify-between h-56 text-left relative overflow-hidden;
   }
 
   .gemini-card::after {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-highlight/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500;
+    @apply absolute inset-0 bg-gradient-to-br from-highlight/5 to-transparent opacity-0 transition-opacity duration-700;
+  }
+
+  .gemini-card:hover::after {
+    @apply opacity-100;
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-2.5 rounded-none text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-panel text-text-secondary hover:text-text-primary border-l-2 border-transparent hover:border-highlight;
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-300 cursor-pointer hover:bg-white/5 text-text-secondary hover:text-text-primary;
   }
 
   .sidebar-item-active {
-    @apply bg-panel text-highlight border-l-2 border-highlight shadow-[inset_0_0_10px_rgba(0,255,0,0.05)];
+    @apply bg-white/10 text-highlight shadow-lg backdrop-blur-md;
+  }
+
+  .ios-button {
+    @apply px-4 py-2 rounded-2xl font-medium transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .ios-button-primary {
+    @apply bg-highlight text-black hover:bg-highlight-hover shadow-lg shadow-highlight/20;
+  }
+
+  .ios-button-secondary {
+    @apply bg-white/10 text-white hover:bg-white/20 border border-white/10 backdrop-blur-md;
   }
 }
 

@@ -70,89 +70,87 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
 
   return (
     <div 
-      className="fixed inset-0 bg-background/50 backdrop-blur-lg flex items-center justify-center z-[100] p-4 animate-fade-in"
+      className="fixed inset-0 bg-black/60 backdrop-blur-3xl flex items-center justify-center z-[100] p-4 animate-fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
     >
       <div 
-        className="bg-panel border border-border p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-sm text-text-primary relative"
+        className="bg-white/5 backdrop-blur-3xl border border-white/10 p-10 sm:p-12 rounded-[3rem] shadow-2xl w-full max-w-md text-white relative overflow-hidden"
       >
-        <div className="flex flex-col items-center mb-6">
-            <div className="w-24 h-24 mb-2">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-highlight/5 blur-3xl rounded-full -mr-20 -mt-20" />
+        
+        <div className="flex flex-col items-center mb-10 relative z-10">
+            <div className="w-28 h-28 mb-4">
                 <AnimatedProtonsLogo />
             </div>
-            <h2 id="auth-modal-title" className="text-3xl font-sora font-bold text-center text-highlight tracking-tighter">
+            <h2 id="auth-modal-title" className="text-4xl font-black text-center text-white tracking-tighter uppercase">
                 Protons AI
             </h2>
-            <p className="text-sm text-text-secondary mt-1">{isLoginView ? "Bem-vindo(a) de volta!" : "Crie sua conta"}</p>
+            <p className="text-xs font-black text-white/30 mt-2 uppercase tracking-[0.2em]">{isLoginView ? "Bem-vindo de volta" : "Crie sua conta"}</p>
         </div>
 
-        <form onSubmit={handlePrimaryAction} className="space-y-5">
-          <div>
+        <form onSubmit={handlePrimaryAction} className="space-y-6 relative z-10">
+          <div className="space-y-4">
             <input 
               type="text" 
               id="usernameAuth" 
               value={username}
               placeholder="Nome de Usuário"
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary placeholder:text-text-secondary transition-all"
+              className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:border-highlight/50 text-white placeholder:text-white/20 transition-all font-medium text-lg"
               required 
               aria-required="true"
             />
-          </div>
-          <div>
             <input 
               type="password" 
               id="passwordAuth" 
               value={password}
               placeholder="Senha"
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary placeholder:text-text-secondary transition-all"
+              className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:border-highlight/50 text-white placeholder:text-white/20 transition-all font-medium text-lg"
               required 
               aria-required="true"
             />
-          </div>
 
-          {!isLoginView && (
-            <div>
+            {!isLoginView && (
               <input 
                 type="password" 
                 id="confirmPasswordAuth" 
                 value={confirmPassword}
                 placeholder="Confirmar Senha"
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-highlight text-text-primary placeholder:text-text-secondary transition-all"
+                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:border-highlight/50 text-white placeholder:text-white/20 transition-all font-medium text-lg"
                 required={!isLoginView}
                 aria-required={!isLoginView}
               />
-            </div>
-          )}
+            )}
+          </div>
 
-          {error && <p className="text-danger text-sm text-center !mt-3">{error}</p>}
+          {error && <p className="text-red-400 text-xs font-bold text-center !mt-4 uppercase tracking-wider">{error}</p>}
 
           <button
             type="submit"
-            className="w-full px-4 py-3 text-base font-semibold text-black bg-highlight hover:bg-highlight-hover rounded-lg shadow-[0_0_15px_rgba(255,215,0,0.2)] transition-all transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-highlight/50"
+            className="w-full px-6 py-5 text-lg font-black text-black bg-highlight hover:scale-105 rounded-2xl shadow-2xl shadow-highlight/20 transition-all active:scale-95 uppercase tracking-widest"
           >
-            {isLoginView ? "Continuar" : "Criar Conta"}
+            {isLoginView ? "Entrar" : "Registrar"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-text-secondary mt-8">
-            {isLoginView ? "Não tem uma conta?" : "Já tem uma conta?"}{' '}
+        <p className="text-center text-xs font-bold text-white/30 mt-10 relative z-10 uppercase tracking-widest">
+            {isLoginView ? "Novo por aqui?" : "Já tem conta?"}{' '}
             <button 
                 type="button" 
                 onClick={isLoginView ? switchToSignup : switchToLogin} 
-                className="font-semibold text-link hover:underline focus:outline-none"
+                className="text-highlight hover:underline focus:outline-none ml-1"
             >
-                {isLoginView ? "Crie uma conta" : "Faça login"}
+                {isLoginView ? "Criar conta" : "Fazer login"}
             </button>
         </p>
         
-        <div className="text-center mt-8 text-xs text-text-secondary">
-            <a href="./privacy.html" target="_blank" rel="noopener noreferrer" className="hover:underline">
-                Política de Privacidade
+        <div className="text-center mt-10 text-[10px] font-black text-white/10 relative z-10 uppercase tracking-[0.2em]">
+            <a href="./privacy.html" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                Termos & Privacidade
             </a>
         </div>
       </div>

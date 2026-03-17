@@ -113,29 +113,32 @@ const ChatViewHeader: React.FC<{
     const title = agent ? agent.name : activeChat.title;
 
     return (
-        <header className="flex items-center justify-between px-6 py-4 bg-background border-b border-border sticky top-0 z-20">
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-panel border border-border">
-                    <Bot className="w-5 h-5 text-highlight" />
+        <header className="flex items-center justify-between px-6 py-5 bg-black/20 backdrop-blur-3xl border-b border-white/10 sticky top-0 z-20">
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-inner group transition-all hover:bg-white/10">
+                    <Bot className="w-6 h-6 text-highlight group-hover:scale-110 transition-transform" />
                 </div>
                 <div>
-                    <h2 className="text-lg font-medium text-text-primary leading-tight uppercase tracking-tighter">{title}</h2>
-                    <p className="text-[10px] text-text-secondary uppercase tracking-[0.2em] font-bold">{activeChat.mode}</p>
+                    <h2 className="text-xl font-black text-white leading-tight tracking-tight">{title}</h2>
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-highlight rounded-full animate-pulse shadow-[0_0_8px_rgba(0,255,0,0.5)]" />
+                        <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-black">{activeChat.mode}</p>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2">
-                <button className="p-2 text-text-secondary hover:text-text-primary hover:bg-panel border border-transparent hover:border-border transition-colors">
-                    <Search className="w-5 h-5" />
+            <div className="flex items-center gap-3">
+                <button className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-all active:scale-90">
+                    <Search className="w-6 h-6" />
                 </button>
                 <div className="relative" ref={menuRef}>
-                    <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 text-text-secondary hover:text-text-primary hover:bg-panel border border-transparent hover:border-border transition-colors">
-                        <MoreVertical className="w-5 h-5" />
+                    <button onClick={() => setMenuOpen(!menuOpen)} className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-all active:scale-90">
+                        <MoreVertical className="w-6 h-6" />
                     </button>
                     {menuOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-panel border border-border rounded-none shadow-2xl z-30 py-1 overflow-hidden animate-fade-in">
-                            <button onClick={() => { onClearChat(activeChat.id); setMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface flex items-center gap-2">
-                                <Eraser className="w-4 h-4" /> Limpar conversa
+                        <div className="absolute right-0 mt-3 w-64 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl z-30 py-3 overflow-hidden animate-fade-in">
+                            <button onClick={() => { onClearChat(activeChat.id); setMenuOpen(false); }} className="w-full text-left px-6 py-4 text-sm font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
+                                <Eraser className="w-4 h-4 text-highlight" /> Limpar conversa
                             </button>
                         </div>
                     )}
@@ -155,55 +158,60 @@ const WelcomePlaceholder: React.FC<{
         {
             title: "Criar uma imagem",
             description: "Modo Ultra para arte avançada",
-            icon: <Sparkles className="w-5 h-5 text-highlight" />,
+            icon: <Sparkles className="w-6 h-6 text-highlight" />,
             onClick: () => onNewChat(AIMode.Ultra),
         },
         {
             title: "Projetar um Agente",
             description: "Personalize sua própria IA",
-            icon: <Bot className="w-5 h-5 text-highlight" />,
+            icon: <Bot className="w-6 h-6 text-highlight" />,
             onClick: onOpenCreateAgentModal,
         },
         {
             title: "Protons HQ",
             description: "Crie histórias em quadrinhos",
-            icon: <Sparkles className="w-5 h-5 text-highlight" />,
+            icon: <Sparkles className="w-6 h-6 text-highlight" />,
             onClick: () => onNewChat(AIMode.ProtonsHQ),
         },
         {
             title: "Estúdio Mágico",
             description: "Transforme esboços em arte",
-            icon: <Brush className="w-5 h-5 text-highlight" />,
+            icon: <Brush className="w-6 h-6 text-highlight" />,
             onClick: onOpenCanvasModal,
         },
         {
             title: "NanoStudio",
             description: "Edição de imagem profissional",
-            icon: <Layout className="w-5 h-5 text-highlight" />,
+            icon: <Layout className="w-6 h-6 text-highlight" />,
             onClick: () => onNewChat(AIMode.KingStudio),
         },
     ];
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-6xl mx-auto w-full animate-fade-in overflow-y-auto custom-scrollbar">
-            <div className="w-full mb-12 text-left px-4">
-                <h1 className="text-5xl md:text-7xl font-medium mb-4 tracking-tight">
-                    <span className="bg-gradient-to-r from-[#4285f4] via-[#9b72cb] to-[#d96570] bg-clip-text text-transparent">Olá!</span>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 max-w-7xl mx-auto w-full animate-fade-in overflow-y-auto custom-scrollbar">
+            <div className="w-full mb-20 text-left px-4">
+                <h1 className="text-7xl md:text-9xl font-black mb-8 tracking-tighter">
+                    <span className="bg-gradient-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent">Olá!</span>
                 </h1>
-                <h2 className="text-4xl md:text-6xl font-medium text-[#444746] dark:text-[#c4c7c5] tracking-tight leading-tight">Como posso ajudar você hoje?</h2>
+                <h2 className="text-4xl md:text-6xl font-black text-white/20 tracking-tight leading-tight max-w-4xl uppercase">Como posso ajudar você hoje?</h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full px-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 w-full px-4">
                 {suggestionCards.map((card, index) => (
                     <button
                         key={index}
                         onClick={card.onClick}
-                        className="gemini-card group"
+                        className="bg-white/5 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-500 text-left group h-72 flex flex-col justify-between shadow-2xl relative overflow-hidden"
                     >
-                        <p className="text-sm font-medium text-text-primary group-hover:text-highlight transition-colors line-clamp-2 mb-8">{card.title}</p>
-                        <div className="flex justify-between items-end gap-2 mt-auto">
-                            <p className="text-xs text-text-secondary leading-relaxed flex-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{card.description}</p>
-                            <div className="p-3 bg-background rounded-none group-hover:bg-panel transition-all duration-300 flex-shrink-0 shadow-sm border border-border/50">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-highlight/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-highlight/10 transition-colors" />
+                        
+                        <div>
+                            <p className="text-xl font-black text-white group-hover:text-highlight transition-colors line-clamp-2 mb-4 tracking-tight leading-tight">{card.title}</p>
+                            <p className="text-xs font-bold text-white/30 leading-relaxed uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">{card.description}</p>
+                        </div>
+                        
+                        <div className="mt-auto flex justify-end">
+                            <div className="p-5 bg-white/5 rounded-[1.5rem] group-hover:bg-highlight/10 group-hover:scale-110 transition-all duration-500 shadow-xl border border-white/5">
                                 {card.icon}
                             </div>
                         </div>
@@ -222,12 +230,12 @@ const SuggestionChips: React.FC<{
     if (suggestions.length === 0) return null;
 
     return (
-        <div className="px-4 md:px-8 pb-2 flex-wrap gap-2 flex">
+        <div className="px-6 md:px-10 pb-4 flex-wrap gap-2 flex">
             {suggestions.map((suggestion, index) => (
                 <button
                     key={index}
                     onClick={() => onSendMessage(suggestion)}
-                    className="px-3 py-1.5 bg-surface border border-border text-text-secondary text-xs rounded-full hover:bg-border hover:text-text-primary transition-colors"
+                    className="px-4 py-2 bg-white/5 border border-white/10 text-white/50 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white/10 hover:text-white transition-all active:scale-95 backdrop-blur-md"
                 >
                     {suggestion}
                 </button>

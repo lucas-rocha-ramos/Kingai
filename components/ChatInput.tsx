@@ -209,23 +209,23 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 pb-6 pt-2">
-        <div className="relative flex flex-col bg-panel rounded-none border border-border shadow-lg transition-all focus-within:border-highlight/50 focus-within:shadow-[0_0_20px_rgba(0,255,0,0.05)] overflow-hidden">
+    <div className="w-full max-w-5xl mx-auto px-4 pb-8 pt-2">
+        <div className="relative flex flex-col bg-white/5 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 shadow-2xl transition-all focus-within:border-highlight/30 focus-within:shadow-[0_0_40px_rgba(0,255,0,0.05)] overflow-hidden">
             
             {/* Image Previews */}
             {selectedFilePreviews.length > 0 && (
-                <div className="flex gap-3 p-4 overflow-x-auto custom-scrollbar border-b border-border/50 bg-black/10">
+                <div className="flex gap-4 p-6 overflow-x-auto custom-scrollbar border-b border-white/5 bg-black/20">
                     {selectedFilePreviews.map((preview, index) => (
                         <div key={index} className="relative group flex-shrink-0">
-                            <img src={preview} className="h-20 w-20 object-cover rounded-none border border-border shadow-sm" alt="" />
+                            <img src={preview} className="h-24 w-24 object-cover rounded-2xl border border-white/10 shadow-lg" alt="" />
                             
                             {currentMode === AIMode.EditorKing && (
                                 <button 
                                     onClick={() => setIsMaskingModalOpen(true)}
-                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-none"
+                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-all rounded-2xl"
                                     title="Editar máscara"
                                 >
-                                    <Brush className="w-6 h-6 text-white" />
+                                    <Brush className="w-8 h-8 text-white" />
                                 </button>
                             )}
 
@@ -235,17 +235,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                     setSelectedFilePreviews(prev => prev.filter((_, i) => i !== index));
                                     if (currentMode === AIMode.EditorKing) setMaskBase64(null);
                                 }}
-                                className="absolute -top-2 -right-2 bg-background text-white rounded-none p-1.5 border border-border opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-danger"
+                                className="absolute -top-2 -right-2 bg-black/60 backdrop-blur-md text-white rounded-full p-2 border border-white/10 opacity-0 group-hover:opacity-100 transition-all shadow-xl hover:bg-danger"
                             >
-                                <X className="w-3 h-3" />
+                                <X className="w-4 h-4" />
                             </button>
                         </div>
                     ))}
                     
                     {currentMode === AIMode.EditorKing && maskBase64 && (
                         <div className="flex flex-col justify-center px-2">
-                            <div className="flex items-center gap-2 text-[10px] font-bold text-highlight uppercase tracking-wider bg-highlight/10 px-3 py-1.5 rounded-none border border-highlight/20">
-                                <Brush className="w-3 h-3" />
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-highlight uppercase tracking-widest bg-highlight/10 px-4 py-2 rounded-xl border border-highlight/20">
+                                <Brush className="w-4 h-4" />
                                 Área Selecionada
                             </div>
                         </div>
@@ -254,19 +254,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="flex items-end gap-2 p-4">
+                <div className="flex items-end gap-3 p-5 md:p-6">
                     {/* Left Actions */}
-                    <div className="flex items-center gap-1 mb-1">
+                    <div className="flex items-center gap-2 mb-1.5">
                         {canAttachFile && (
                             <>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" multiple />
                                 <button 
                                     type="button" 
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-2.5 text-text-secondary hover:text-highlight hover:bg-surface rounded-none transition-all"
+                                    className="p-3 text-text-secondary hover:text-highlight hover:bg-white/10 rounded-2xl transition-all active:scale-90"
                                     title="Anexar imagem"
                                 >
-                                    <Plus className="w-6 h-6" />
+                                    <Plus className="w-7 h-7" />
                                 </button>
                             </>
                         )}
@@ -275,12 +275,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     {/* Textarea */}
                     <div className="flex-1 min-w-0 py-2">
                         {isRecording ? (
-                            <div className="flex items-center gap-4 px-3 py-1 bg-highlight/5 rounded-none border border-highlight/20">
-                                <div className="w-2.5 h-2.5 bg-red-500 rounded-none animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                                <span className="text-sm font-mono text-highlight tracking-wider">
+                            <div className="flex items-center gap-4 px-5 py-2.5 bg-highlight/5 rounded-2xl border border-highlight/20 animate-pulse">
+                                <div className="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
+                                <span className="text-base font-mono text-highlight tracking-widest font-bold">
                                     {new Date(recordingTime * 1000).toISOString().substr(14, 5)}
                                 </span>
-                                <button type="button" onClick={stopRecording} className="text-xs text-highlight font-bold uppercase tracking-tighter hover:underline ml-auto">Parar</button>
+                                <button type="button" onClick={stopRecording} className="text-xs text-highlight font-bold uppercase tracking-widest hover:underline ml-auto">Parar Gravação</button>
                             </div>
                         ) : (
                             <textarea
@@ -298,7 +298,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                     }
                                 }}
                                 placeholder={getPlaceholderText()}
-                                className="w-full bg-transparent border-none focus:ring-0 text-text-primary placeholder-[#9aa0a6] text-base resize-none max-h-[200px] custom-scrollbar py-1 leading-relaxed"
+                                className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-white/30 text-lg resize-none max-h-[200px] custom-scrollbar py-2 leading-relaxed font-medium"
                                 rows={1}
                                 disabled={isLoading}
                             />
@@ -306,52 +306,52 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     </div>
 
                     {/* Right Actions */}
-                    <div className="flex items-center gap-1 mb-1">
+                    <div className="flex items-center gap-2 mb-1.5">
                         {canRecordAudio && !text.trim() && selectedFiles.length === 0 && (
                             <button 
                                 type="button"
                                 onMouseDown={startRecording}
                                 onMouseUp={stopRecording}
-                                className={`p-2.5 rounded-none transition-all ${isRecording ? 'text-red-500 bg-red-500/10 shadow-inner' : 'text-text-secondary hover:text-highlight hover:bg-surface'}`}
+                                className={`p-3 rounded-2xl transition-all active:scale-90 ${isRecording ? 'text-red-500 bg-red-500/10 shadow-inner' : 'text-text-secondary hover:text-highlight hover:bg-white/10'}`}
                                 title="Gravar áudio"
                             >
-                                <Mic className="w-6 h-6" />
+                                <Mic className="w-7 h-7" />
                             </button>
                         )}
                         
                         <button 
                             type="submit"
                             disabled={isLoading || (!text.trim() && selectedFiles.length === 0)}
-                            className={`p-2.5 rounded-none transition-all ${(!text.trim() && selectedFiles.length === 0) ? 'text-border opacity-50' : 'text-highlight hover:bg-highlight/10 shadow-sm'}`}
+                            className={`p-3 rounded-2xl transition-all active:scale-90 ${(!text.trim() && selectedFiles.length === 0) ? 'text-white/10' : 'text-highlight bg-highlight/10 shadow-lg shadow-highlight/5 hover:bg-highlight/20'}`}
                             title="Enviar mensagem"
                         >
-                            <Send className="w-6 h-6" />
+                            <Send className="w-7 h-7" />
                         </button>
                     </div>
                 </div>
 
                 {/* Bottom Tools Bar */}
-                <div className="flex items-center justify-between px-5 py-2.5 border-t border-border/30 bg-black/5">
-                    <div className="flex items-center gap-5">
+                <div className="flex items-center justify-between px-6 py-3.5 border-t border-white/5 bg-white/5">
+                    <div className="flex items-center gap-6">
                         <button 
                             type="button"
                             onClick={() => setWebSearch(!webSearch)}
-                            className={`flex items-center gap-2 text-xs font-semibold transition-all ${webSearch ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
+                            className={`flex items-center gap-2.5 text-xs font-bold transition-all ${webSearch ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
                             title="Pesquisa Google em tempo real"
                         >
-                            <Globe className="w-4 h-4" />
-                            <span>Pesquisa</span>
+                            <Globe className="w-4.5 h-4.5" />
+                            <span className="tracking-tight">Pesquisa</span>
                         </button>
 
                         {currentMode === AIMode.Ultra && (
                             <button 
                                 type="button"
                                 onClick={() => setThinkLonger(!thinkLonger)}
-                                className={`flex items-center gap-2 text-xs font-semibold transition-all ${thinkLonger ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
+                                className={`flex items-center gap-2.5 text-xs font-bold transition-all ${thinkLonger ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
                                 title="Raciocínio profundo e detalhado"
                             >
-                                <Lightbulb className="w-4 h-4" />
-                                <span>Pensar +</span>
+                                <Lightbulb className="w-4.5 h-4.5" />
+                                <span className="tracking-tight">Pensar +</span>
                             </button>
                         )}
 
@@ -360,19 +360,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                 <button 
                                     type="button"
                                     onClick={() => setForceImage(!forceImage)}
-                                    className={`flex items-center gap-2 text-xs font-semibold transition-all ${forceImage ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
+                                    className={`flex items-center gap-2.5 text-xs font-bold transition-all ${forceImage ? 'text-highlight' : 'text-text-secondary hover:text-text-primary'}`}
                                     title="Forçar geração de imagem"
                                 >
-                                    <Sparkles className="w-4 h-4" />
-                                    <span>Imagem</span>
+                                    <Sparkles className="w-4.5 h-4.5" />
+                                    <span className="tracking-tight">Imagem</span>
                                 </button>
 
-                                <div className="flex items-center gap-2 text-text-secondary border-l border-border/30 pl-5">
-                                    <ImageIcon className="w-4 h-4" />
+                                <div className="flex items-center gap-3 text-text-secondary border-l border-white/10 pl-6">
+                                    <ImageIcon className="w-4.5 h-4.5" />
                                     <select 
                                         value={numberOfImagesToGenerate} 
                                         onChange={(e) => setNumberOfImagesToGenerate(Number(e.target.value))}
-                                        className="bg-transparent border-none text-[10px] font-bold p-0 focus:ring-0 cursor-pointer uppercase tracking-wider font-mono"
+                                        className="bg-transparent border-none text-[10px] font-bold p-0 focus:ring-0 cursor-pointer uppercase tracking-widest font-mono text-white/60 hover:text-white transition-colors"
                                     >
                                         <option value="1">1 Imagem</option>
                                         <option value="2">2 Imagens</option>
@@ -383,14 +383,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                         )}
                     </div>
                     
-                    <div className="text-[10px] text-text-secondary font-bold uppercase tracking-[0.2em] opacity-70 font-mono">
+                    <div className="text-[10px] text-highlight font-bold uppercase tracking-[0.25em] opacity-40 font-mono hidden sm:block">
                         {currentMode}
                     </div>
                 </div>
             </form>
         </div>
-        <p className="text-center text-[10px] text-[#5f6368] mt-3 px-4">
-            Protons AI pode exibir informações imprecisas, inclusive sobre pessoas, por isso cheque as respostas.
+        <p className="text-center text-[10px] text-white/20 mt-4 px-6 font-medium tracking-tight">
+            Protons AI pode exibir informações imprecisas. Verifique fatos importantes.
         </p>
 
         {isMaskingModalOpen && selectedFilePreviews[0] && (

@@ -101,15 +101,15 @@ const CameraModal: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in" onClick={handleClose}>
-      <div className="bg-panel rounded-2xl shadow-2xl w-full max-w-2xl text-text-primary relative aspect-video flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <button onClick={handleClose} className="absolute top-3 right-3 p-1.5 text-white bg-black/40 rounded-full z-20 hover:bg-black/60" aria-label="Fechar câmera"><XMarkIcon className="w-6 h-6" /></button>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-3xl flex items-center justify-center z-[110] p-4 animate-fade-in" onClick={handleClose}>
+      <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl w-full max-w-3xl text-white relative aspect-video flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <button onClick={handleClose} className="absolute top-6 right-6 p-3 text-white bg-black/40 backdrop-blur-xl rounded-2xl z-20 hover:bg-white/10 transition-all active:scale-90" aria-label="Fechar câmera"><XMarkIcon className="w-6 h-6" /></button>
         
         {error ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <h3 className="text-lg font-semibold text-danger">Erro na Câmera</h3>
-            <p className="text-sm text-text-secondary mt-2">{error}</p>
-            <button onClick={startCamera} className="mt-6 px-4 py-2 text-sm font-medium text-background bg-accent hover:bg-accent-hover rounded-md transition-colors">Tentar Novamente</button>
+          <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
+            <h3 className="text-2xl font-black text-red-400 uppercase tracking-tighter">Erro na Câmera</h3>
+            <p className="text-sm font-bold text-white/40 mt-4 uppercase tracking-widest">{error}</p>
+            <button onClick={startCamera} className="mt-10 px-8 py-4 text-base font-black text-black bg-highlight hover:scale-105 rounded-2xl transition-all active:scale-95 uppercase tracking-widest shadow-2xl shadow-highlight/20">Tentar Novamente</button>
           </div>
         ) : (
           <>
@@ -121,20 +121,20 @@ const CameraModal: React.FC<{
                 <canvas ref={canvasRef} className="hidden"></canvas>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-center">
+            <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-center">
                 {captureState === 'streaming' && (
-                    <button onClick={handleCaptureClick} className="w-16 h-16 bg-white rounded-full border-4 border-black/30 shadow-lg flex items-center justify-center" aria-label="Tirar foto">
-                        <CameraIcon className="w-8 h-8 text-background"/>
+                    <button onClick={handleCaptureClick} className="w-20 h-20 bg-white rounded-full border-[6px] border-black/30 shadow-2xl flex items-center justify-center hover:scale-110 active:scale-90 transition-all" aria-label="Tirar foto">
+                        <CameraIcon className="w-10 h-10 text-black"/>
                     </button>
                 )}
                 {captureState === 'preview' && (
-                    <div className="flex items-center gap-8">
-                        <button onClick={handleRetake} className="flex flex-col items-center text-white font-medium" aria-label="Tirar outra foto">
-                           <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-1 hover:bg-white/30"><RefreshIcon className="w-7 h-7"/></div>
+                    <div className="flex items-center gap-12">
+                        <button onClick={handleRetake} className="flex flex-col items-center text-white/60 font-black text-[10px] uppercase tracking-[0.2em] hover:text-white transition-all" aria-label="Tirar outra foto">
+                           <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center mb-3 hover:bg-white/20 border border-white/10"><RefreshIcon className="w-8 h-8"/></div>
                            <span>Repetir</span>
                         </button>
-                         <button onClick={handleAccept} className="flex flex-col items-center text-white font-medium" aria-label="Usar esta foto">
-                           <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-1 hover:bg-accent-hover"><PaperAirplaneIcon className="w-8 h-8 text-background"/></div>
+                         <button onClick={handleAccept} className="flex flex-col items-center text-white font-black text-[10px] uppercase tracking-[0.2em] hover:text-highlight transition-all" aria-label="Usar esta foto">
+                           <div className="w-20 h-20 bg-highlight rounded-full flex items-center justify-center mb-3 hover:scale-110 shadow-2xl shadow-highlight/20"><PaperAirplaneIcon className="w-10 h-10 text-black"/></div>
                            <span>Usar Foto</span>
                         </button>
                     </div>

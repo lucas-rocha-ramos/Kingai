@@ -1057,7 +1057,9 @@ export const App = () => {
 
     if (!currentUser) {
         return (
-             <div className="h-screen w-screen bg-background flex text-sm overflow-hidden">
+             <div className="h-screen w-screen bg-[#050505] flex text-sm overflow-hidden relative">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-highlight/5 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-highlight/5 blur-[120px] rounded-full animate-pulse" />
                 <AuthModal
                     isOpen={true}
                     onClose={() => {}}
@@ -1084,7 +1086,10 @@ export const App = () => {
 
 
     return (
-        <div className="h-screen w-screen bg-background flex text-sm overflow-hidden">
+        <div className="h-screen w-screen bg-[#050505] flex text-sm overflow-hidden relative">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-highlight/2 blur-[150px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-highlight/2 blur-[150px] rounded-full pointer-events-none" />
+            
             <Sidebar
                 chats={chatSessions}
                 agents={agents}
@@ -1104,11 +1109,11 @@ export const App = () => {
                 onDeleteAgent={handleDeleteAgent}
                 onLogout={handleLogout}
             />
-            <main className={`flex-1 flex flex-col min-w-0 relative transition-all duration-500 ${isSidebarOpen ? 'md:ml-[260px]' : 'md:ml-[68px]'}`}>
+            <main className={`flex-1 flex flex-col min-w-0 relative transition-all duration-700 ease-in-out ${isSidebarOpen ? 'md:ml-[280px]' : 'md:ml-[80px]'}`}>
                 {!isSidebarOpen && (
                     <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="absolute top-4 left-4 z-20 p-2 bg-[#1e1f20] border border-[#3c4043] rounded-full text-text-primary hover:text-highlight transition-colors lg:hidden"
+                        className="absolute top-8 left-8 z-20 p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl text-white/40 hover:text-highlight hover:bg-white/10 transition-all shadow-2xl lg:hidden active:scale-90"
                         aria-label="Abrir menu lateral"
                     >
                        <Menu className="w-6 h-6" />

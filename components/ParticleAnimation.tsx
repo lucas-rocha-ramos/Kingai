@@ -31,22 +31,18 @@ export const ParticleAnimation: React.FC<ParticleAnimationProps> = ({ aspectRati
             attribute float aScale;
             attribute vec3 aTargetPosition;
 
-            // Função para gerar números pseudo-aleatórios
             float rand(vec2 co){
                 return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
             }
 
             void main() {
-                // Interpola a posição da partícula
                 float progress = smoothstep(0.2, 0.8, uProgress);
                 vec3 finalPos = mix(position, aTargetPosition, progress);
                 
-                // Movimento de "energia"
                 float struggle = sin(progress * 3.14159) * 0.15;
                 finalPos.x += cos(uTime * 2.0 + position.y * 10.0) * struggle;
                 finalPos.y += sin(uTime * 2.0 + position.x * 10.0) * struggle;
                 
-                // Efeito de Glitch
                 if (uGlitchAmount > 0.0) {
                     float glitchX = (rand(vec2(position.y * 0.1, uTime)) - 0.5) * uGlitchAmount;
                     float glitchY = (rand(vec2(position.x * 0.1, uTime)) - 0.5) * uGlitchAmount;
@@ -63,7 +59,6 @@ export const ParticleAnimation: React.FC<ParticleAnimationProps> = ({ aspectRati
                 float finalPointSize = aScale * 1.5;
                 finalPointSize *= (1.0 - viewPosition.z / 10.0);
 
-                // Efeito de dissipação: as partículas encolhem no final
                 float dissipate = smoothstep(0.85, 1.0, uProgress);
                 finalPointSize *= (1.0 - dissipate);
 
@@ -79,18 +74,15 @@ export const ParticleAnimation: React.FC<ParticleAnimationProps> = ({ aspectRati
                 float distanceToCenter = distance(gl_PointCoord, vec2(0.5));
                 float strength = 1.0 - (distanceToCenter * 2.0);
 
-                // Paleta de cores futurista
-                vec3 colorCold = vec3(0.0, 0.1, 0.4); // Azul escuro
-                vec3 colorHot = vec3(0.0, 1.0, 1.0);  // Ciano brilhante
+                vec3 colorCold = vec3(0.0, 0.1, 0.4); 
+                vec3 colorHot = vec3(0.0, 1.0, 1.0);  
                 vec3 finalColor = mix(colorCold, colorHot, uProgress * 1.2);
 
-                // Efeito de Scanline (linhas de varredura)
                 float scanline = clamp(sin(gl_FragCoord.y * 0.8) * 10.0, 0.85, 1.0);
                 vec3 colorWithScanline = finalColor * scanline;
 
-                // Opacidade com fade-in e fade-out mais suave no final
                 float alpha = smoothstep(0.0, 0.2, uProgress) - smoothstep(0.85, 1.0, uProgress);
-                alpha += pow(uProgress, 15.0) * 0.3; // Pulso de brilho
+                alpha += pow(uProgress, 15.0) * 0.3; 
                 
                 gl_FragColor = vec4(colorWithScanline * strength, strength * alpha);
             }
@@ -104,8 +96,6 @@ export const ParticleAnimation: React.FC<ParticleAnimationProps> = ({ aspectRati
             const height = parseFloat(parts[1]);
             return isNaN(width) || isNaN(height) || height === 0 ? 1 : width / height;
         }
-
-        let aspectRatio = parseAspectRatio(propAspectRatio);
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -131,8 +121,9 @@ export const ParticleAnimation: React.FC<ParticleAnimationProps> = ({ aspectRati
             const targetPositions = new Float32Array(particleCount * 3);
             const scales = new Float32Array(particleCount);
             
+            const currentRatio = parseAspectRatio(propAspectRatio);
             const imageWidth = 4.5;
-            const imageHeight = imageWidth / aspectRatio;
+            const imageHeight = imageWidth / currentRatio;
             
             for (let i = 0; i < particleCount; i++) {
                 const i3 = i * 3;
@@ -198,27 +189,13 @@ export const ParticleAnimation: React.FC<ParticleAnimationProps> = ({ aspectRati
             const width = container.clientWidth;
             const height = container.clientHeight;
             
-            const newAspectRatio = width / height;
-            
-            cameraRef.current.aspect = newAspectRatio;
+            cameraRef.current.aspect = width / height;
             cameraRef.current.updateProjectionMatrix();
             rendererRef.current.setSize(width, height);
-            
-            const particleSystem = particleSystemRef.current;
-            if(particleSystem) {
-                const logicalAspectRatio = parseAspectRatio(propAspectRatio);
-                const imageWidth = 4.5;
-                const imageHeight = imageWidth / logicalAspectRatio;
-                const targets = (particleSystem.geometry.attributes.aTargetPosition as THREE.BufferAttribute).array as Float32Array;
-                for(let i=0; i < targets.length / 3; i++) {
-                    targets[i*3 + 1] = (Math.random() - 0.5) * imageHeight;
-                }
-                (particleSystem.geometry.attributes.aTargetPosition as THREE.BufferAttribute).needsUpdate = true;
-            }
         }
 
         createParticleSystem();
-        handleResize(); // Initial size calculation
+        handleResize(); 
         animate();
 
         const resizeObserver = new ResizeObserver(handleResize);
@@ -240,13 +217,37 @@ export const ParticleAnimation: React.FC<ParticleAnimationProps> = ({ aspectRati
                 if (container && rendererRef.current.domElement) {
                      try {
                         container.removeChild(rendererRef.current.domElement);
-                     } catch(e) {
-                         // Ignore error if element is already gone
-                     }
+                     } catch(e) {}
                 }
             }
         };
-    }, [propAspectRatio, duration]);
+    }, [duration]); // Remove propAspectRatio from dependencies to avoid re-init
+
+    // Handle aspect ratio changes separately
+    useEffect(() => {
+        const particleSystem = particleSystemRef.current;
+        if (!particleSystem) return;
+
+        const parseAspectRatio = (ratio: string | undefined): number => {
+            if (!ratio) return 1;
+            const parts = ratio.split(':');
+            if (parts.length !== 2) return 1;
+            const width = parseFloat(parts[0]);
+            const height = parseFloat(parts[1]);
+            return isNaN(width) || isNaN(height) || height === 0 ? 1 : width / height;
+        }
+
+        const logicalAspectRatio = parseAspectRatio(propAspectRatio);
+        const imageWidth = 4.5;
+        const imageHeight = imageWidth / logicalAspectRatio;
+        const targets = (particleSystem.geometry.attributes.aTargetPosition as THREE.BufferAttribute).array as Float32Array;
+        
+        for(let i=0; i < targets.length / 3; i++) {
+            // Only update Y to match new aspect ratio, keeping X distribution
+            targets[i*3 + 1] = (Math.random() - 0.5) * imageHeight;
+        }
+        (particleSystem.geometry.attributes.aTargetPosition as THREE.BufferAttribute).needsUpdate = true;
+    }, [propAspectRatio]);
 
     if (webglSupported === false) {
         return (

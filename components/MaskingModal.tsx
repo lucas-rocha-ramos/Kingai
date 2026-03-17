@@ -158,22 +158,22 @@ const MaskingModal: React.FC<MaskingModalProps> = ({ isOpen, onClose, image, onS
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-[110] p-4 animate-fade-in">
-      <div className="w-full max-w-4xl flex flex-col items-center">
-        <div className="w-full flex justify-between items-center mb-4 text-white">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-3xl flex flex-col items-center justify-center z-[120] p-4 animate-fade-in">
+      <div className="w-full max-w-5xl flex flex-col items-center">
+        <div className="w-full flex justify-between items-center mb-8 text-white">
           <div>
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Brush className="w-6 h-6 text-highlight" />
-              Marcar Área para Edição
+            <h2 className="text-3xl font-black flex items-center gap-3 uppercase tracking-tighter">
+              <Brush className="w-8 h-8 text-highlight" />
+              Editar Área
             </h2>
-            <p className="text-xs text-text-secondary">Pinte a parte da foto que você deseja que o Nano Banana altere.</p>
+            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">Pinte a parte da foto que você deseja que a IA altere.</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-surface rounded-full transition-colors">
-            <X className="w-7 h-7" />
+          <button onClick={onClose} className="p-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-90">
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="relative bg-panel border border-border rounded-xl overflow-hidden cursor-crosshair shadow-2xl">
+        <div className="relative bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] overflow-hidden cursor-crosshair shadow-2xl">
           <canvas
             ref={canvasRef}
             onMouseDown={startDrawing}
@@ -188,27 +188,27 @@ const MaskingModal: React.FC<MaskingModalProps> = ({ isOpen, onClose, image, onS
           <canvas ref={maskCanvasRef} className="hidden" />
         </div>
 
-        <div className="w-full mt-6 flex flex-wrap items-center justify-between gap-4 bg-surface p-4 rounded-2xl border border-border">
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-bold text-text-secondary">Tamanho do Pincel</label>
+        <div className="w-full mt-10 flex flex-wrap items-center justify-between gap-6 bg-white/5 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-white/10 shadow-2xl">
+          <div className="flex items-center gap-8">
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-black text-white/30 tracking-widest">Pincel</label>
               <input 
                 type="range" min="10" max="100" value={brushSize} 
                 onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                className="w-32 accent-highlight"
+                className="w-40 accent-highlight h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
               />
             </div>
-            <button onClick={clearMask} className="flex items-center gap-2 px-4 py-2 bg-panel hover:bg-border text-sm text-white rounded-lg transition-colors border border-border">
-              <Trash2 className="w-4 h-4 text-danger" /> Limpar
+            <button onClick={clearMask} className="flex items-center gap-3 px-6 py-4 bg-white/5 hover:bg-white/10 text-xs font-black text-white/60 rounded-2xl transition-all border border-white/10 uppercase tracking-widest active:scale-95">
+              <Trash2 className="w-4 h-4 text-red-400" /> Limpar
             </button>
           </div>
 
           <button 
             onClick={handleSave}
             disabled={!hasDrawn}
-            className="flex items-center gap-2 px-8 py-3 bg-highlight text-black font-bold rounded-xl hover:bg-highlight-hover transition-all disabled:opacity-30 shadow-lg active:scale-95"
+            className="flex items-center gap-3 px-10 py-5 bg-highlight text-black font-black rounded-2xl hover:scale-105 transition-all disabled:opacity-20 shadow-2xl shadow-highlight/20 active:scale-95 uppercase tracking-widest text-sm"
           >
-            <Check className="w-5 h-5" /> Confirmar Seleção
+            <Check className="w-5 h-5" /> Confirmar
           </button>
         </div>
       </div>

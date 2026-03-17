@@ -20,13 +20,13 @@ const GalleryView: React.FC<GalleryViewProps> = ({ images, onClose, onClearGalle
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden animate-fade-in">
-      <div className="p-4 border-b border-border flex justify-between items-center bg-panel flex-shrink-0">
-        <h2 className="text-xl font-sora font-semibold text-text-primary">Galeria de Imagens</h2>
-        <div className="flex items-center space-x-2">
+    <div className="flex-1 flex flex-col bg-transparent overflow-hidden animate-fade-in">
+      <div className="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-white/5 backdrop-blur-3xl flex-shrink-0">
+        <h2 className="text-2xl font-black text-white tracking-tight">Galeria de Imagens</h2>
+        <div className="flex items-center gap-3">
             <button
                 onClick={onClearGallery}
-                className="p-2 rounded-full hover:bg-surface text-text-secondary hover:text-danger disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-3 rounded-2xl bg-white/5 hover:bg-danger/10 text-white/40 hover:text-danger disabled:opacity-20 disabled:cursor-not-allowed transition-all border border-white/10 active:scale-90"
                 aria-label="Limpar Galeria"
                 title="Limpar Galeria"
                 disabled={images.length === 0}
@@ -35,7 +35,7 @@ const GalleryView: React.FC<GalleryViewProps> = ({ images, onClose, onClearGalle
             </button>
             <button 
                 onClick={onClose} 
-                className="p-2 rounded-full hover:bg-surface text-text-secondary hover:text-text-primary transition-colors"
+                className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all border border-white/10 active:scale-90"
                 aria-label="Fechar Galeria"
             >
               <XMarkIcon className="w-6 h-6" />
@@ -43,37 +43,41 @@ const GalleryView: React.FC<GalleryViewProps> = ({ images, onClose, onClearGalle
         </div>
       </div>
       {images.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-text-secondary p-4">
-          <PhotoIcon className="w-24 h-24 mb-4 text-border" />
-          <h3 className="text-xl font-semibold text-text-primary">Sua galeria está vazia</h3>
-          <p>As imagens que você gerar aparecerão aqui.</p>
+        <div className="flex-1 flex flex-col items-center justify-center text-white/20 p-8">
+          <div className="w-32 h-32 mb-8 bg-white/5 rounded-[2.5rem] flex items-center justify-center border border-white/10 shadow-2xl">
+            <PhotoIcon className="w-16 h-16 opacity-20" />
+          </div>
+          <h3 className="text-2xl font-bold text-white mb-2">Sua galeria está vazia</h3>
+          <p className="text-base font-medium">As imagens que você gerar aparecerão aqui.</p>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
             {images.map(image => (
-              <div key={image.id} className="bg-panel border border-border rounded-lg shadow-lg overflow-hidden group relative animate-slide-in">
-                <img 
-                  src={`data:image/png;base64,${image.base64}`} 
-                  alt={image.prompt} 
-                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="p-3">
-                  <p className="text-xs text-text-secondary truncate" title={image.prompt}>
+              <div key={image.id} className="bg-white/5 border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden group relative animate-slide-in backdrop-blur-md">
+                <div className="aspect-square overflow-hidden">
+                    <img 
+                      src={`data:image/png;base64,${image.base64}`} 
+                      alt={image.prompt} 
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    />
+                </div>
+                <div className="p-5 bg-black/20">
+                  <p className="text-xs font-bold text-white/80 truncate mb-1" title={image.prompt}>
                     {image.prompt}
                   </p>
-                  <p className="text-xs text-text-secondary/70 mt-1">
-                    {new Date(image.createdAt).toLocaleString('pt-BR')}
+                  <p className="text-[10px] font-black text-highlight uppercase tracking-widest opacity-60">
+                    {new Date(image.createdAt).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                     <button 
                         onClick={() => handleDownloadImage(image.base64, image.prompt)}
-                        className="p-3 bg-white/10 text-white rounded-full hover:bg-white/20 transition-colors"
+                        className="p-5 bg-highlight text-black rounded-2xl hover:scale-110 transition-all shadow-[0_0_30px_rgba(0,255,0,0.3)]"
                         title="Baixar Imagem"
                         aria-label="Baixar Imagem"
                     >
-                        <DownloadIcon className="w-6 h-6" />
+                        <DownloadIcon className="w-8 h-8" />
                     </button>
                 </div>
               </div>

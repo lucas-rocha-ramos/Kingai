@@ -57,33 +57,41 @@ export const RichLoadingIndicator: React.FC<RichLoadingIndicatorProps> = ({ type
         return () => clearInterval(interval);
     }, [messages.length]);
 
+    // Parse aspect ratio for CSS
+    const cssAspectRatio = aspectRatio.includes(':') ? aspectRatio.replace(':', ' / ') : '1 / 1';
+
     return (
         <div
-            className="w-full bg-panel rounded-2xl flex flex-col items-center justify-center p-6 text-center text-text-primary relative overflow-hidden border border-border"
+            className="w-full bg-white/5 backdrop-blur-3xl rounded-[2.5rem] flex flex-col items-center justify-center p-8 text-center text-white relative overflow-hidden border border-white/10 shadow-2xl"
             style={{
-                aspectRatio: aspectRatio.replace(':', ' / '),
+                aspectRatio: cssAspectRatio,
             }}
         >
             {type === 'image' 
-                ? <div className="absolute inset-0"><ParticleAnimation aspectRatio={aspectRatio} duration={22} /></div> 
+                ? <div className="absolute inset-0 pointer-events-none z-0"><ParticleAnimation aspectRatio={aspectRatio} duration={22} /></div> 
                 : <VideoAnimation />
             }
             
-            <div className="relative z-10 bg-black/40 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-2xl max-w-[80%]">
-                <div className="flex justify-center mb-4">
-                    <div className="relative">
-                        <div className="w-12 h-12 border-2 border-highlight/20 border-t-highlight rounded-full animate-spin"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            {type === 'image' ? <ImageIcon className="w-5 h-5 text-highlight" /> : <Clapperboard className="w-5 h-5 text-highlight" />}
-                        </div>
+            <div className="relative z-10 bg-black/40 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-white/10 shadow-2xl max-w-[90%] animate-fade-in flex flex-col items-center">
+                <div className="relative mb-8">
+                    <div className="w-20 h-20 border-[6px] border-highlight/10 border-t-highlight rounded-full animate-spin shadow-[0_0_20px_rgba(0,255,0,0.2)]"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        {type === 'image' ? <ImageIcon className="w-8 h-8 text-highlight" /> : <Clapperboard className="w-8 h-8 text-highlight" />}
                     </div>
                 </div>
-                <p className="font-medium text-sm text-white/90 animate-pulse">{messages[messageIndex]}</p>
-                <div className="mt-4 flex justify-center gap-1">
+                
+                <p className="text-xl font-black text-white tracking-tight animate-pulse mb-8 uppercase tracking-[0.1em]">{messages[messageIndex]}</p>
+                
+                <div className="flex justify-center gap-2">
                     {messages.map((_, i) => (
-                        <div key={i} className={`h-1 rounded-full transition-all duration-500 ${i === messageIndex ? 'w-4 bg-highlight' : 'w-1 bg-white/20'}`} />
+                        <div key={i} className={`h-2 rounded-full transition-all duration-700 ${i === messageIndex ? 'w-10 bg-highlight shadow-[0_0_10px_rgba(0,255,0,0.5)]' : 'w-2 bg-white/10'}`} />
                     ))}
                 </div>
+            </div>
+            
+            <div className="absolute bottom-6 left-6 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-highlight animate-bounce" />
+                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Processamento Neural Ativo</span>
             </div>
         </div>
     );

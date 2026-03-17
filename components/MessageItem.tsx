@@ -13,11 +13,11 @@ const SourceLink: React.FC<{ chunk: GroundingChunk, index: number }> = ({ chunk,
   if (!chunk.web || !chunk.web.uri) return null;
   return (
     <a href={chunk.web.uri} target="_blank" rel="noopener noreferrer" 
-      className="inline-flex items-center gap-1 bg-panel text-text-secondary text-[10px] px-2 py-1 rounded-none mr-2 mb-2 hover:bg-border hover:text-text-primary transition-colors border border-border"
+      className="inline-flex items-center gap-1.5 bg-white/5 text-white/60 text-[10px] px-3 py-1.5 rounded-xl mr-2 mb-2 hover:bg-white/10 hover:text-white transition-all border border-white/10 backdrop-blur-md"
       title={chunk.web.title || 'Fonte da Web'}
     >
-      <span className="font-bold">{index + 1}</span>
-      <span className="truncate max-w-[100px]">
+      <span className="font-bold text-highlight">{index + 1}</span>
+      <span className="truncate max-w-[120px] font-medium">
         {chunk.web.title || (() => {
           try {
             return new URL(chunk.web.uri!).hostname;
@@ -26,7 +26,7 @@ const SourceLink: React.FC<{ chunk: GroundingChunk, index: number }> = ({ chunk,
           }
         })()}
       </span>
-      <ExternalLink className="w-2 h-2" />
+      <ExternalLink className="w-2.5 h-2.5 opacity-50" />
     </a>
   );
 };
@@ -44,27 +44,27 @@ const GeneratedImageDisplay: React.FC<{
     const dataUrl = `data:${image.mimeType};base64,${image.base64}`;
 
     if (!image.base64) {
-        return <div className="aspect-square bg-panel rounded-none flex items-center justify-center p-4 text-center text-xs text-danger">{image.prompt || "Erro ao carregar imagem."}</div>;
+        return <div className="aspect-square bg-white/5 rounded-3xl flex items-center justify-center p-6 text-center text-xs text-danger border border-white/10">{image.prompt || "Erro ao carregar imagem."}</div>;
     }
 
     return (
-        <div className="relative group rounded-none overflow-hidden border border-border">
+        <div className="relative group rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black/20">
             <img 
                 src={dataUrl} 
                 alt={image.prompt || "Imagem gerada"} 
-                className="w-full h-auto object-contain cursor-pointer hover:scale-[1.02] transition-transform duration-500" 
+                className="w-full h-auto object-contain cursor-pointer hover:scale-[1.02] transition-transform duration-700 ease-out" 
                 onClick={onOpenImagePreview} 
             />
             
-            <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button onClick={() => onRegenerateImage(message.id, imageIndex)} className="p-2 bg-black/60 backdrop-blur-md text-white rounded-none hover:bg-black/80 transition-colors" title="Gerar novamente">
-                    <RotateCcw className="w-4 h-4" />
+            <div className="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                <button onClick={() => onRegenerateImage(message.id, imageIndex)} className="p-3 bg-black/60 backdrop-blur-xl text-white rounded-2xl hover:bg-highlight hover:text-black transition-all shadow-xl border border-white/10" title="Gerar novamente">
+                    <RotateCcw className="w-4.5 h-4.5" />
                 </button>
-                <button onClick={() => onStartVariation(message, imageIndex)} className="p-2 bg-black/60 backdrop-blur-md text-white rounded-none hover:bg-black/80 transition-colors" title="Criar Variação">
-                    <Sparkles className="w-4 h-4" />
+                <button onClick={() => onStartVariation(message, imageIndex)} className="p-3 bg-black/60 backdrop-blur-xl text-white rounded-2xl hover:bg-highlight hover:text-black transition-all shadow-xl border border-white/10" title="Criar Variação">
+                    <Sparkles className="w-4.5 h-4.5" />
                 </button>
-                <button onClick={onOpenImagePreview} className="p-2 bg-black/60 backdrop-blur-md text-white rounded-none hover:bg-black/80 transition-colors" title="Expandir">
-                    <Maximize2 className="w-4 h-4" />
+                <button onClick={onOpenImagePreview} className="p-3 bg-black/60 backdrop-blur-xl text-white rounded-2xl hover:bg-highlight hover:text-black transition-all shadow-xl border border-white/10" title="Expandir">
+                    <Maximize2 className="w-4.5 h-4.5" />
                 </button>
             </div>
         </div>
@@ -93,10 +93,10 @@ const VideoPlayer: React.FC<{ apiUrl: string }> = ({ apiUrl }) => {
         return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
     }, [apiUrl]);
 
-    if (isLoading) return <div className="aspect-video bg-panel rounded-none animate-pulse flex items-center justify-center text-text-secondary text-xs">Carregando vídeo...</div>;
+    if (isLoading) return <div className="aspect-video bg-white/5 rounded-3xl animate-pulse flex items-center justify-center text-white/40 text-xs border border-white/10">Carregando vídeo...</div>;
 
     return (
-        <div className="rounded-none overflow-hidden border border-border bg-black">
+        <div className="rounded-3xl overflow-hidden border border-white/10 bg-black shadow-2xl">
             <video src={videoSrc || ''} controls autoPlay loop muted className="w-full" />
         </div>
     );
@@ -129,13 +129,13 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
   const renderContent = () => {
     if (isUser && message.userImages && message.userImages.length > 0) {
         return (
-            <div className="flex flex-col gap-3">
-                <div className={`grid ${message.userImages.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            <div className="flex flex-col gap-4">
+                <div className={`grid ${message.userImages.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
                     {message.userImages.map((img, index) => (
-                        <img key={index} src={`data:${img.mimeType};base64,${img.base64}`} alt="" className="w-full h-48 object-cover rounded-none border border-border" />
+                        <img key={index} src={`data:${img.mimeType};base64,${img.base64}`} alt="" className="w-full h-56 object-cover rounded-3xl border border-white/10 shadow-xl" />
                     ))}
                 </div>
-                {message.text && <p className="text-sm leading-relaxed">{message.text}</p>}
+                {message.text && <p className="text-base leading-relaxed font-medium">{message.text}</p>}
             </div>
         );
     }
@@ -145,8 +145,8 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
 
     if (message.images && message.images.length > 0) {
         return (
-            <div className="flex flex-col gap-4">
-                <div className={`grid ${message.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
+            <div className="flex flex-col gap-6">
+                <div className={`grid ${message.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
                     {message.images.map((image, index) => (
                         <GeneratedImageDisplay 
                             key={index} 
@@ -161,7 +161,7 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
                         />
                     ))}
                 </div>
-                {message.text && <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: message.text.replace(/\n/g, '<br />') }} />}
+                {message.text && <div className="text-base leading-relaxed font-medium text-white/90" dangerouslySetInnerHTML={{ __html: message.text.replace(/\n/g, '<br />') }} />}
             </div>
         );
     }
@@ -172,10 +172,10 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
     
     return (
         <div className="flex flex-col gap-4">
-            <div className={`text-sm leading-relaxed ${message.error ? 'text-danger' : ''}`} dangerouslySetInnerHTML={{ __html: textContent.replace(/\n/g, '<br />') }} />
+            <div className={`text-base leading-relaxed font-medium ${message.error ? 'text-danger' : 'text-white/90'}`} dangerouslySetInnerHTML={{ __html: textContent.replace(/\n/g, '<br />') }} />
             
             {message.groundingChunks && message.groundingChunks.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-1 mt-3">
                     {message.groundingChunks.map((chunk, index) => <SourceLink key={index} chunk={chunk} index={index} />)}
                 </div>
             )}
@@ -184,35 +184,35 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
   };
 
   return (
-    <div className={`flex w-full mb-8 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}>
-        <div className={`flex gap-4 max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex w-full mb-10 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex gap-5 max-w-[90%] md:max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
             {/* Avatar */}
             <div className="flex-shrink-0 mt-1">
                 {isUser ? (
-                    <div className="w-8 h-8 rounded-none bg-highlight flex items-center justify-center text-black font-bold text-xs">
+                    <div className="w-10 h-10 rounded-2xl bg-highlight flex items-center justify-center text-black font-black text-sm shadow-lg shadow-highlight/20">
                         U
                     </div>
                 ) : (
-                    <div className="w-8 h-8 rounded-none bg-panel border border-border flex items-center justify-center">
-                        <Bot className="w-5 h-5 text-highlight" />
+                    <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-xl backdrop-blur-md">
+                        <Bot className="w-6 h-6 text-highlight" />
                     </div>
                 )}
             </div>
 
             {/* Message Content */}
-            <div className={`flex flex-col gap-2 ${isUser ? 'items-end' : 'items-start'}`}>
-                <div className={`group relative ${isUser ? 'bg-panel text-text-primary px-4 py-3 rounded-none border border-border shadow-[0_0_10px_rgba(0,255,0,0.05)]' : 'text-text-primary w-full'}`}>
+            <div className={`flex flex-col gap-3 ${isUser ? 'items-end' : 'items-start'}`}>
+                <div className={`group relative ${isUser ? 'bg-white/10 text-white px-6 py-4 rounded-[2rem] rounded-tr-lg border border-white/10 shadow-2xl backdrop-blur-3xl' : 'text-white w-full'}`}>
                     {isEditing ? (
-                        <div className="flex flex-col gap-2 min-w-[200px]">
+                        <div className="flex flex-col gap-3 min-w-[280px] md:min-w-[400px]">
                             <textarea
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
-                                className="w-full bg-background border border-border rounded-none p-3 text-sm focus:outline-none focus:border-highlight"
-                                rows={3}
+                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-base focus:outline-none focus:border-highlight transition-all placeholder-white/20"
+                                rows={4}
                             />
-                            <div className="flex justify-end gap-2">
-                                <button onClick={() => setIsEditing(false)} className="p-1.5 hover:bg-border rounded-none transition-colors"><X className="w-4 h-4" /></button>
-                                <button onClick={handleEditSave} className="p-1.5 hover:bg-border rounded-none transition-colors text-highlight"><Check className="w-4 h-4" /></button>
+                            <div className="flex justify-end gap-3">
+                                <button onClick={() => setIsEditing(false)} className="p-2.5 hover:bg-white/10 rounded-xl transition-all"><X className="w-5 h-5" /></button>
+                                <button onClick={handleEditSave} className="p-2.5 hover:bg-highlight/20 rounded-xl transition-all text-highlight"><Check className="w-5 h-5" /></button>
                             </div>
                         </div>
                     ) : (
@@ -221,17 +221,17 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
 
                     {/* Actions Overlay for AI Messages */}
                     {!isUser && !message.isLoading && !isEditing && (
-                        <div className="flex items-center gap-1 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <button onClick={() => onFeedback('liked')} className={`p-1.5 rounded-none hover:bg-panel transition-colors ${message.feedback === 'liked' ? 'text-highlight' : 'text-text-secondary'}`}><ThumbsUp className="w-4 h-4" /></button>
-                            <button onClick={() => onFeedback('disliked')} className={`p-1.5 rounded-none hover:bg-panel transition-colors ${message.feedback === 'disliked' ? 'text-danger' : 'text-text-secondary'}`}><ThumbsDown className="w-4 h-4" /></button>
+                        <div className="flex items-center gap-2 mt-6 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-1 group-hover:translate-y-0">
+                            <button onClick={() => onFeedback('liked')} className={`p-2 rounded-xl hover:bg-white/10 transition-all ${message.feedback === 'liked' ? 'text-highlight bg-highlight/10' : 'text-white/40'}`}><ThumbsUp className="w-4.5 h-4.5" /></button>
+                            <button onClick={() => onFeedback('disliked')} className={`p-2 rounded-xl hover:bg-white/10 transition-all ${message.feedback === 'disliked' ? 'text-danger bg-danger/10' : 'text-white/40'}`}><ThumbsDown className="w-4.5 h-4.5" /></button>
                             <button onClick={() => { 
                                 if (navigator.clipboard && navigator.clipboard.writeText) {
                                     navigator.clipboard.writeText(message.text || ''); 
                                 } else {
                                     console.warn("Clipboard API não disponível");
                                 }
-                            }} className="p-1.5 rounded-none hover:bg-panel text-text-secondary transition-colors" title="Copiar"><Copy className="w-4 h-4" /></button>
-                            <button onClick={() => onRegenerateImage(message.id, 0)} className="p-1.5 rounded-none hover:bg-panel text-text-secondary transition-colors" title="Refazer"><RotateCcw className="w-4 h-4" /></button>
+                            }} className="p-2 rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all" title="Copiar"><Copy className="w-4.5 h-4.5" /></button>
+                            <button onClick={() => onRegenerateImage(message.id, 0)} className="p-2 rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all" title="Refazer"><RotateCcw className="w-4.5 h-4.5" /></button>
                         </div>
                     )}
 
@@ -239,9 +239,9 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
                     {isUser && !isEditing && (
                         <button 
                             onClick={() => setIsEditing(true)}
-                            className="absolute -left-10 top-2 p-2 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -left-12 top-2 p-3 text-white/20 hover:text-highlight opacity-0 group-hover:opacity-100 transition-all hover:bg-white/5 rounded-xl"
                         >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit3 className="w-5 h-5" />
                         </button>
                     )}
                 </div>

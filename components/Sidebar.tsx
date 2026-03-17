@@ -145,48 +145,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
       />
 
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-surface transition-all duration-500 ease-in-out border-r border-border ${isOpen ? 'w-[260px]' : 'w-0 -translate-x-full md:w-[68px] md:translate-x-0'}`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-black/40 backdrop-blur-3xl transition-all duration-500 ease-in-out border-r border-white/10 ${isOpen ? 'w-[280px]' : 'w-0 -translate-x-full md:w-[80px] md:translate-x-0'}`}
       >
         {/* Top Section: Toggle & New Chat */}
-        <div className="p-4 flex flex-col gap-6">
+        <div className="p-6 flex flex-col gap-8">
           <div className="flex items-center justify-between">
             {isOpen && (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-highlight rounded-full animate-pulse" />
-                <span className="text-lg font-bold tracking-tighter text-highlight">PROTONS AI</span>
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 bg-highlight rounded-full shadow-[0_0_10px_rgba(0,255,0,0.5)]" />
+                <span className="text-xl font-black tracking-tight text-white uppercase tracking-widest">Protons AI</span>
               </div>
             )}
             <button 
               onClick={onToggle}
-              className="p-2 hover:bg-panel border border-transparent hover:border-border rounded-none transition-colors w-fit text-text-secondary hover:text-text-primary"
+              className="p-2.5 hover:bg-white/10 rounded-2xl transition-all w-fit text-white/40 hover:text-white active:scale-90"
               title={isOpen ? "Recolher menu" : "Expandir menu"}
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
           </div>
 
           <div className="relative" ref={newChatMenuRef}>
             <button 
               onClick={() => isOpen ? setNewChatMenuOpen(!newChatMenuOpen) : onToggle()}
-              className={`flex items-center gap-3 bg-panel hover:bg-border transition-all duration-300 rounded-none border border-highlight/20 h-11 ${isOpen ? 'px-4 w-full' : 'w-10 px-2 justify-center mx-auto'}`}
+              className={`flex items-center gap-3 bg-highlight text-black hover:scale-105 transition-all duration-300 rounded-2xl shadow-lg shadow-highlight/20 h-12 ${isOpen ? 'px-5 w-full' : 'w-12 px-0 justify-center mx-auto'}`}
             >
-              <Plus className="w-5 h-5 text-highlight" />
-              {isOpen && <span className="text-sm font-medium text-text-primary whitespace-nowrap uppercase tracking-widest">Nova sessão</span>}
+              <Plus className="w-6 h-6" />
+              {isOpen && <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap">Nova sessão</span>}
             </button>
 
             {newChatMenuOpen && isOpen && (
-              <div className="absolute left-0 top-full mt-2 w-full bg-panel border border-border rounded-none shadow-2xl z-50 py-2 animate-fade-in overflow-hidden">
+              <div className="absolute left-0 top-full mt-3 w-full bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl z-50 py-4 animate-fade-in overflow-hidden">
                 {menuCategories.map((cat) => (
-                  <div key={cat.title} className="mb-2 last:mb-0">
-                    <div className="px-4 py-1 text-[10px] font-bold text-text-secondary uppercase tracking-widest border-b border-border/30 mb-1">{cat.title}</div>
+                  <div key={cat.title} className="mb-4 last:mb-0">
+                    <div className="px-6 py-1.5 text-[9px] font-black text-white/30 uppercase tracking-[0.2em] border-b border-white/5 mb-2">{cat.title}</div>
                     {cat.items.map(item => (
                       <button 
                         key={item.mode}
                         onClick={() => handleCreateNewChat(item.mode)}
-                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-border transition-colors text-sm text-text-primary"
+                        className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-sm text-white group"
                       >
-                        {item.icon}
-                        <span className="uppercase tracking-tighter">{item.label}</span>
+                        <span className="text-highlight group-hover:scale-110 transition-transform">{item.icon}</span>
+                        <span className="font-bold tracking-tight">{item.label}</span>
                       </button>
                     ))}
                   </div>
@@ -197,21 +197,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Middle Section: Recent Chats */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-2 py-4">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-2">
           {isOpen && (
-            <div className="mb-4 px-2 flex items-center justify-between">
-              <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Recentes</span>
-              <div className="flex gap-1">
+            <div className="mb-4 px-4 flex items-center justify-between">
+              <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Recentes</span>
+              <div className="flex gap-1 bg-white/5 p-1 rounded-2xl border border-white/5">
                 <button 
                   onClick={() => setCurrentView('chats')}
-                  className={`p-1 rounded-none transition-colors ${currentView === 'chats' ? 'bg-panel text-highlight border border-highlight/30' : 'text-text-secondary hover:text-text-primary'}`}
+                  className={`p-2 rounded-xl transition-all ${currentView === 'chats' ? 'bg-white/10 text-highlight shadow-lg' : 'text-white/30 hover:text-white'}`}
                   title="Conversas"
                 >
                   <MessageSquare className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => setCurrentView('agents')}
-                  className={`p-1 rounded-none transition-colors ${currentView === 'agents' ? 'bg-panel text-highlight border border-highlight/30' : 'text-text-secondary hover:text-text-primary'}`}
+                  className={`p-2 rounded-xl transition-all ${currentView === 'agents' ? 'bg-white/10 text-highlight shadow-lg' : 'text-white/30 hover:text-white'}`}
                   title="Agentes"
                 >
                   <Bot className="w-4 h-4" />
@@ -220,18 +220,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          <div className="space-y-1">
+          <div className="space-y-1.5 px-1">
             {currentView === 'chats' ? (
               sortedChats.map(chat => (
                 <button
                   key={chat.id}
                   onClick={() => handleSwitchChatAndToggle(chat.id)}
                   onContextMenu={(e) => handleRightClick(e, chat.id, 'chat')}
-                  className={`sidebar-item w-full ${currentChatId === chat.id ? 'sidebar-item-active' : ''} ${!isOpen ? 'justify-center px-0' : ''}`}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left group ${currentChatId === chat.id ? 'bg-highlight/10 text-highlight border border-highlight/20 shadow-lg shadow-highlight/5' : 'text-white/50 hover:bg-white/5 hover:text-white'} ${!isOpen ? 'justify-center px-0' : ''}`}
                   title={chat.title}
                 >
-                  <MessageSquare className="w-5 h-5 flex-shrink-0" />
-                  {isOpen && <span className="truncate text-sm">{chat.title}</span>}
+                  <MessageSquare className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${currentChatId === chat.id ? 'text-highlight' : 'text-white/30'}`} />
+                  {isOpen && <span className="truncate text-sm font-bold tracking-tight">{chat.title}</span>}
                 </button>
               ))
             ) : (
@@ -239,10 +239,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {isOpen && (
                   <button 
                     onClick={() => { onOpenCreateAgentModal(); closeMenuAndToggle(); }}
-                    className="sidebar-item w-full mb-2 text-highlight"
+                    className="flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left mb-4 text-highlight bg-highlight/5 border border-highlight/20 hover:bg-highlight/10 shadow-lg shadow-highlight/5 group"
                   >
-                    <Plus className="w-5 h-5" />
-                    <span>Criar Agente</span>
+                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                    <span className="text-xs font-black uppercase tracking-widest">Criar Agente</span>
                   </button>
                 )}
                 {sortedAgents.map(agent => (
@@ -250,15 +250,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={agent.id}
                     onClick={() => handleSelectAgentAndToggle(agent.id)}
                     onContextMenu={(e) => handleRightClick(e, agent.id, 'agent')}
-                    className={`sidebar-item w-full ${chats.find(c => c.agentId === agent.id)?.id === currentChatId ? 'sidebar-item-active' : ''} ${!isOpen ? 'justify-center px-0' : ''}`}
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left group ${chats.find(c => c.agentId === agent.id)?.id === currentChatId ? 'bg-highlight/10 text-highlight border border-highlight/20 shadow-lg shadow-highlight/5' : 'text-white/50 hover:bg-white/5 hover:text-white'} ${!isOpen ? 'justify-center px-0' : ''}`}
                     title={agent.name}
                   >
                     {agent.profilePictureUrl ? (
-                      <img src={agent.profilePictureUrl} className="w-5 h-5 rounded-none object-cover border border-border" alt="" />
+                      <img src={agent.profilePictureUrl} className="w-6 h-6 rounded-xl object-cover border border-white/10 group-hover:scale-110 transition-transform" alt="" />
                     ) : (
-                      <Bot className="w-5 h-5 flex-shrink-0" />
+                      <Bot className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${chats.find(c => c.agentId === agent.id)?.id === currentChatId ? 'text-highlight' : 'text-white/30'}`} />
                     )}
-                    {isOpen && <span className="truncate text-sm">{agent.name}</span>}
+                    {isOpen && <span className="truncate text-sm font-bold tracking-tight">{agent.name}</span>}
                   </button>
                 ))}
               </>
@@ -267,33 +267,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Bottom Section: User & Settings */}
-        <div className="p-4 border-t border-border flex flex-col gap-2">
+        <div className="p-6 border-t border-white/10 flex flex-col gap-3">
           <button 
             onClick={onShowGallery}
-            className={`sidebar-item w-full ${!isOpen ? 'justify-center px-0' : ''}`}
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left text-white/50 hover:bg-white/5 hover:text-white group ${!isOpen ? 'justify-center px-0' : ''}`}
             title="Galeria"
           >
-            <ImageIcon className="w-5 h-5" />
-            {isOpen && <span className="text-sm uppercase tracking-widest">Galeria</span>}
+            <ImageIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            {isOpen && <span className="text-xs font-black uppercase tracking-widest">Galeria</span>}
           </button>
           
           <button 
             onClick={onLogout}
-            className={`sidebar-item w-full text-danger hover:bg-danger/10 ${!isOpen ? 'justify-center px-0' : ''}`}
+            className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left text-danger/60 hover:bg-danger/10 hover:text-danger group ${!isOpen ? 'justify-center px-0' : ''}`}
             title="Sair"
           >
-            <LogOut className="w-5 h-5" />
-            {isOpen && <span className="text-sm uppercase tracking-widest">Desconectar</span>}
+            <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            {isOpen && <span className="text-xs font-black uppercase tracking-widest">Desconectar</span>}
           </button>
 
           {isOpen && (
-            <div className="mt-2 flex items-center gap-3 px-2 py-2 bg-panel border border-highlight/10 rounded-none">
-              <div className="w-8 h-8 rounded-none bg-highlight flex items-center justify-center text-black font-bold text-xs">
+            <div className="mt-4 flex items-center gap-3 px-4 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] backdrop-blur-md shadow-xl">
+              <div className="w-10 h-10 rounded-2xl bg-highlight flex items-center justify-center text-black font-black text-sm shadow-lg shadow-highlight/30">
                 {currentUser?.username?.charAt(0).toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold text-text-primary truncate uppercase tracking-tighter">{currentUser?.username}</p>
-                <p className="text-[8px] text-text-secondary uppercase">Acesso: Root</p>
+                <p className="text-sm font-black text-white truncate tracking-tight">{currentUser?.username}</p>
+                <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">Acesso Root</p>
               </div>
             </div>
           )}
@@ -303,24 +303,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {contextMenu && (
           <div 
             ref={contextMenuRef} 
-            className="fixed bg-panel border border-border rounded-none shadow-2xl z-[100] py-1 min-w-[160px] animate-fade-in" 
+            className="fixed bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] shadow-2xl z-[100] py-3 min-w-[200px] animate-fade-in overflow-hidden" 
             style={{ top: contextMenu.y, left: contextMenu.x }}
           >
             {contextMenu.type === 'chat' ? (
               <>
-                <button onClick={() => { onClearChat(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface flex items-center gap-2">
-                  <Eraser className="w-4 h-4" /> Limpar
+                <button onClick={() => { onClearChat(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-6 py-3 text-sm font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
+                  <Eraser className="w-4 h-4 text-highlight" /> Limpar
                 </button>
-                <button onClick={() => { onDeleteChat(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-danger/10 flex items-center gap-2">
+                <button onClick={() => { onDeleteChat(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-6 py-3 text-sm font-bold text-danger hover:bg-danger/10 flex items-center gap-3 transition-colors">
                   <Trash2 className="w-4 h-4" /> Excluir
                 </button>
               </>
             ) : (
               <>
-                <button onClick={() => { onOpenEditAgentModal(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface flex items-center gap-2">
-                  <Edit3 className="w-4 h-4" /> Editar
+                <button onClick={() => { onOpenEditAgentModal(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-6 py-3 text-sm font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
+                  <Edit3 className="w-4 h-4 text-highlight" /> Editar
                 </button>
-                <button onClick={() => { onDeleteAgent(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-danger/10 flex items-center gap-2">
+                <button onClick={() => { onDeleteAgent(contextMenu.id); setContextMenu(null); }} className="w-full text-left px-6 py-3 text-sm font-bold text-danger hover:bg-danger/10 flex items-center gap-3 transition-colors">
                   <Trash2 className="w-4 h-4" /> Excluir
                 </button>
               </>
