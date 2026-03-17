@@ -1086,9 +1086,10 @@ export const App = () => {
 
 
     return (
-        <div className="h-[100dvh] w-screen bg-[#050505] flex text-sm overflow-hidden relative safe-top safe-bottom">
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-highlight/2 blur-[150px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-highlight/2 blur-[150px] rounded-full pointer-events-none" />
+        <div className="h-[100dvh] w-screen bg-[#000000] flex text-sm overflow-hidden relative">
+            {/* Background Accents */}
+            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-highlight/5 blur-[180px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-highlight/5 blur-[180px] rounded-full pointer-events-none" />
             
             <Sidebar
                 chats={chatSessions}
@@ -1109,16 +1110,27 @@ export const App = () => {
                 onDeleteAgent={handleDeleteAgent}
                 onLogout={handleLogout}
             />
+            
             <main className={`flex-1 flex flex-col min-w-0 relative transition-all duration-700 ease-in-out ${isSidebarOpen ? 'md:ml-[280px]' : 'md:ml-[80px]'}`}>
-                {!isSidebarOpen && (
-                    <button
-                        onClick={() => setIsSidebarOpen(true)}
-                        className="absolute top-6 left-6 z-20 p-3.5 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl text-white/40 hover:text-highlight hover:bg-white/10 transition-all shadow-2xl md:hidden active:scale-90 no-tap-highlight"
-                        aria-label="Abrir menu lateral"
-                    >
-                       <Menu className="w-6 h-6" />
-                    </button>
-                )}
+                {/* Dynamic Island / Mobile Header */}
+                <div className="md:hidden absolute top-4 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-[400px]">
+                    <div className="bg-black/80 backdrop-blur-3xl border border-white/10 rounded-[2rem] px-4 py-2.5 flex items-center justify-between shadow-2xl">
+                        <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="p-2 text-white/60 hover:text-white transition-colors no-tap-highlight"
+                        >
+                            <Menu className="w-5 h-5" />
+                        </button>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-highlight rounded-full animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Protons AI</span>
+                        </div>
+                        <div className="w-9 h-9 rounded-full bg-highlight/10 border border-highlight/20 flex items-center justify-center text-[10px] font-black text-highlight">
+                            {currentUser.username[0].toUpperCase()}
+                        </div>
+                    </div>
+                </div>
+
                 {activeView === 'chat' ? (
                     <ChatView
                         activeChatSession={activeChatSession}

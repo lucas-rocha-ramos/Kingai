@@ -145,20 +145,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       />
 
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-black/60 backdrop-blur-3xl transition-all duration-500 ease-in-out border-r border-white/10 ${isOpen ? 'w-[85vw] md:w-[280px]' : 'w-0 -translate-x-full md:w-[80px] md:translate-x-0'}`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-black/80 backdrop-blur-[40px] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-r border-white/5 ${isOpen ? 'w-[85vw] md:w-[320px]' : 'w-0 -translate-x-full md:w-[88px] md:translate-x-0'}`}
       >
         {/* Top Section: Toggle & New Chat */}
-        <div className="p-4 md:p-6 flex flex-col gap-6 md:gap-8">
+        <div className="p-5 md:p-8 flex flex-col gap-8 md:gap-10">
           <div className="flex items-center justify-between">
             {isOpen && (
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 bg-highlight rounded-full shadow-[0_0_10px_rgba(0,255,0,0.5)]" />
-                <span className="text-lg md:text-xl font-black tracking-tight text-white uppercase tracking-widest">Protons AI</span>
+              <div className="flex items-center gap-4">
+                <div className="w-3 h-3 bg-highlight rounded-full shadow-[0_0_20px_rgba(0,255,0,0.6)] animate-pulse" />
+                <span className="text-xl md:text-2xl font-black tracking-tighter text-white uppercase tracking-[0.1em]">Protons</span>
               </div>
             )}
             <button 
               onClick={onToggle}
-              className="p-2.5 hover:bg-white/10 rounded-2xl transition-all w-fit text-white/40 hover:text-white active:scale-90 no-tap-highlight"
+              className="p-3 hover:bg-white/5 rounded-[1.25rem] transition-all w-fit text-white/20 hover:text-white active:scale-90 no-tap-highlight border border-transparent hover:border-white/10"
               title={isOpen ? "Recolher menu" : "Expandir menu"}
             >
               <Menu className="w-6 h-6" />
@@ -168,25 +168,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="relative" ref={newChatMenuRef}>
             <button 
               onClick={() => isOpen ? setNewChatMenuOpen(!newChatMenuOpen) : onToggle()}
-              className={`flex items-center gap-3 bg-highlight text-black hover:scale-105 transition-all duration-300 rounded-2xl shadow-lg shadow-highlight/20 h-12 ${isOpen ? 'px-5 w-full' : 'w-12 px-0 justify-center mx-auto'}`}
+              className={`flex items-center gap-4 bg-white text-black hover:scale-[1.02] active:scale-95 transition-all duration-500 rounded-[1.5rem] shadow-[0_10px_30px_rgba(255,255,255,0.1)] h-14 ${isOpen ? 'px-6 w-full' : 'w-14 px-0 justify-center mx-auto'}`}
             >
-              <Plus className="w-6 h-6" />
-              {isOpen && <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap">Nova sessão</span>}
+              <Plus className="w-6 h-6 stroke-[3]" />
+              {isOpen && <span className="text-xs font-black uppercase tracking-[0.2em] whitespace-nowrap">Nova Sessão</span>}
             </button>
 
             {newChatMenuOpen && isOpen && (
-              <div className="absolute left-0 top-full mt-3 w-full bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl z-50 py-4 animate-fade-in overflow-hidden">
+              <div className="absolute left-0 top-full mt-4 w-full bg-black/60 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.8)] z-50 py-6 animate-in fade-in slide-in-from-top-4 duration-500 overflow-y-auto max-h-[60vh] custom-scrollbar">
                 {menuCategories.map((cat) => (
-                  <div key={cat.title} className="mb-4 last:mb-0">
-                    <div className="px-6 py-1.5 text-[9px] font-black text-white/30 uppercase tracking-[0.2em] border-b border-white/5 mb-2">{cat.title}</div>
+                  <div key={cat.title} className="mb-6 last:mb-0">
+                    <div className="px-8 py-2 text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-2">{cat.title}</div>
                     {cat.items.map(item => (
                       <button 
                         key={item.mode}
                         onClick={() => handleCreateNewChat(item.mode)}
-                        className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-sm text-white group"
+                        className="w-full flex items-center gap-4 px-8 py-4 hover:bg-white/5 transition-all text-sm text-white group relative overflow-hidden"
                       >
-                        <span className="text-highlight group-hover:scale-110 transition-transform">{item.icon}</span>
-                        <span className="font-bold tracking-tight">{item.label}</span>
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-highlight translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
+                        <span className="text-highlight group-hover:scale-125 transition-transform duration-500">{item.icon}</span>
+                        <span className="font-bold tracking-tight group-hover:translate-x-1 transition-transform duration-500">{item.label}</span>
                       </button>
                     ))}
                   </div>
@@ -197,22 +198,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Middle Section: Recent Chats */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-2">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-4 py-2">
           {isOpen && (
-            <div className="mb-4 px-4 flex items-center justify-between">
-              <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Recentes</span>
-              <div className="flex gap-1 bg-white/5 p-1 rounded-2xl border border-white/5">
+            <div className="mb-6 px-4 flex items-center justify-between">
+              <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.3em]">Histórico</span>
+              <div className="flex gap-1.5 bg-white/5 p-1.5 rounded-[1.25rem] border border-white/5">
                 <button 
                   onClick={() => setCurrentView('chats')}
-                  className={`p-2 rounded-xl transition-all ${currentView === 'chats' ? 'bg-white/10 text-highlight shadow-lg' : 'text-white/30 hover:text-white'}`}
-                  title="Conversas"
+                  className={`p-2.5 rounded-xl transition-all duration-500 ${currentView === 'chats' ? 'bg-white text-black shadow-xl' : 'text-white/20 hover:text-white'}`}
                 >
                   <MessageSquare className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => setCurrentView('agents')}
-                  className={`p-2 rounded-xl transition-all ${currentView === 'agents' ? 'bg-white/10 text-highlight shadow-lg' : 'text-white/30 hover:text-white'}`}
-                  title="Agentes"
+                  className={`p-2.5 rounded-xl transition-all duration-500 ${currentView === 'agents' ? 'bg-white text-black shadow-xl' : 'text-white/20 hover:text-white'}`}
                 >
                   <Bot className="w-4 h-4" />
                 </button>
@@ -220,18 +219,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          <div className="space-y-1.5 px-1">
+          <div className="space-y-2 px-1">
             {currentView === 'chats' ? (
               sortedChats.map(chat => (
                 <button
                   key={chat.id}
                   onClick={() => handleSwitchChatAndToggle(chat.id)}
                   onContextMenu={(e) => handleRightClick(e, chat.id, 'chat')}
-                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left group ${currentChatId === chat.id ? 'bg-highlight/10 text-highlight border border-highlight/20 shadow-lg shadow-highlight/5' : 'text-white/50 hover:bg-white/5 hover:text-white'} ${!isOpen ? 'justify-center px-0' : ''}`}
-                  title={chat.title}
+                  className={`flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all duration-500 w-full text-left group relative overflow-hidden ${currentChatId === chat.id ? 'bg-white/10 text-white border border-white/10 shadow-2xl' : 'text-white/30 hover:bg-white/5 hover:text-white'} ${!isOpen ? 'justify-center px-0' : ''}`}
                 >
-                  <MessageSquare className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${currentChatId === chat.id ? 'text-highlight' : 'text-white/30'}`} />
-                  {isOpen && <span className="truncate text-sm font-bold tracking-tight">{chat.title}</span>}
+                  <MessageSquare className={`w-5 h-5 flex-shrink-0 transition-all duration-500 group-hover:scale-110 ${currentChatId === chat.id ? 'text-highlight' : 'text-white/20'}`} />
+                  {isOpen && <span className="truncate text-sm font-bold tracking-tight leading-none">{chat.title}</span>}
+                  {currentChatId === chat.id && isOpen && <div className="absolute right-4 w-1.5 h-1.5 bg-highlight rounded-full shadow-[0_0_10px_rgba(0,255,0,0.5)]" />}
                 </button>
               ))
             ) : (
@@ -239,10 +238,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {isOpen && (
                   <button 
                     onClick={() => { onOpenCreateAgentModal(); closeMenuAndToggle(); }}
-                    className="flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left mb-4 text-highlight bg-highlight/5 border border-highlight/20 hover:bg-highlight/10 shadow-lg shadow-highlight/5 group"
+                    className="flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all duration-500 w-full text-left mb-6 text-black bg-white hover:scale-[1.02] active:scale-95 shadow-xl group"
                   >
-                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                    <span className="text-xs font-black uppercase tracking-widest">Criar Agente</span>
+                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500 stroke-[3]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Criar Agente</span>
                   </button>
                 )}
                 {sortedAgents.map(agent => (
@@ -250,15 +249,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={agent.id}
                     onClick={() => handleSelectAgentAndToggle(agent.id)}
                     onContextMenu={(e) => handleRightClick(e, agent.id, 'agent')}
-                    className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left group ${chats.find(c => c.agentId === agent.id)?.id === currentChatId ? 'bg-highlight/10 text-highlight border border-highlight/20 shadow-lg shadow-highlight/5' : 'text-white/50 hover:bg-white/5 hover:text-white'} ${!isOpen ? 'justify-center px-0' : ''}`}
-                    title={agent.name}
+                    className={`flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all duration-500 w-full text-left group relative overflow-hidden ${chats.find(c => c.agentId === agent.id)?.id === currentChatId ? 'bg-white/10 text-white border border-white/10 shadow-2xl' : 'text-white/30 hover:bg-white/5 hover:text-white'} ${!isOpen ? 'justify-center px-0' : ''}`}
                   >
                     {agent.profilePictureUrl ? (
-                      <img src={agent.profilePictureUrl} className="w-6 h-6 rounded-xl object-cover border border-white/10 group-hover:scale-110 transition-transform" alt="" />
+                      <img src={agent.profilePictureUrl} className="w-6 h-6 rounded-xl object-cover border border-white/10 group-hover:scale-110 transition-transform duration-500" alt="" />
                     ) : (
-                      <Bot className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${chats.find(c => c.agentId === agent.id)?.id === currentChatId ? 'text-highlight' : 'text-white/30'}`} />
+                      <Bot className={`w-5 h-5 flex-shrink-0 transition-all duration-500 group-hover:scale-110 ${chats.find(c => c.agentId === agent.id)?.id === currentChatId ? 'text-highlight' : 'text-white/20'}`} />
                     )}
-                    {isOpen && <span className="truncate text-sm font-bold tracking-tight">{agent.name}</span>}
+                    {isOpen && <span className="truncate text-sm font-bold tracking-tight leading-none">{agent.name}</span>}
                   </button>
                 ))}
               </>
@@ -267,33 +265,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Bottom Section: User & Settings */}
-        <div className="p-6 border-t border-white/10 flex flex-col gap-3">
+        <div className="p-6 md:p-8 border-t border-white/5 flex flex-col gap-4">
           <button 
             onClick={onShowGallery}
-            className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left text-white/50 hover:bg-white/5 hover:text-white group ${!isOpen ? 'justify-center px-0' : ''}`}
-            title="Galeria"
+            className={`flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all duration-500 w-full text-left text-white/20 hover:bg-white/5 hover:text-white group ${!isOpen ? 'justify-center px-0' : ''}`}
           >
-            <ImageIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            {isOpen && <span className="text-xs font-black uppercase tracking-widest">Galeria</span>}
+            <ImageIcon className="w-5 h-5 group-hover:scale-110 transition-transform duration-500" />
+            {isOpen && <span className="text-[10px] font-black uppercase tracking-[0.2em]">Galeria</span>}
           </button>
           
           <button 
             onClick={onLogout}
-            className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full text-left text-danger/60 hover:bg-danger/10 hover:text-danger group ${!isOpen ? 'justify-center px-0' : ''}`}
-            title="Sair"
+            className={`flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all duration-500 w-full text-left text-danger/40 hover:bg-danger/10 hover:text-danger group ${!isOpen ? 'justify-center px-0' : ''}`}
           >
-            <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            {isOpen && <span className="text-xs font-black uppercase tracking-widest">Desconectar</span>}
+            <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-500" />
+            {isOpen && <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sair</span>}
           </button>
 
           {isOpen && (
-            <div className="mt-4 flex items-center gap-3 px-4 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] backdrop-blur-md shadow-xl">
-              <div className="w-10 h-10 rounded-2xl bg-highlight flex items-center justify-center text-black font-black text-sm shadow-lg shadow-highlight/30">
+            <div className="mt-4 flex items-center gap-4 px-5 py-5 bg-white/5 border border-white/10 rounded-[2rem] backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-black font-black text-base shadow-[0_10px_20px_rgba(255,255,255,0.1)] relative z-10">
                 {currentUser?.username?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 relative z-10">
                 <p className="text-sm font-black text-white truncate tracking-tight">{currentUser?.username}</p>
-                <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">Acesso Root</p>
+                <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em]">Root Access</p>
               </div>
             </div>
           )}

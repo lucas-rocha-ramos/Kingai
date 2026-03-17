@@ -188,31 +188,31 @@ const WelcomePlaceholder: React.FC<{
     ];
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-12 max-w-7xl mx-auto w-full animate-fade-in overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-12 max-w-7xl mx-auto w-full animate-fade-in overflow-y-auto custom-scrollbar pt-24 md:pt-12">
             <div className="w-full mb-12 md:mb-20 text-left px-2 md:px-4">
-                <h1 className="text-5xl md:text-9xl font-black mb-4 md:mb-8 tracking-tighter">
+                <h1 className="text-6xl md:text-9xl font-black mb-4 md:mb-8 tracking-tighter">
                     <span className="bg-gradient-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent">Olá!</span>
                 </h1>
-                <h2 className="text-2xl md:text-6xl font-black text-white/20 tracking-tight leading-tight max-w-4xl uppercase">Como posso ajudar você hoje?</h2>
+                <h2 className="text-3xl md:text-6xl font-black text-white/10 tracking-tight leading-tight max-w-4xl uppercase">Como posso ajudar você hoje?</h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 w-full px-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 w-full px-2 md:px-4">
                 {suggestionCards.map((card, index) => (
                     <button
                         key={index}
                         onClick={card.onClick}
-                        className="bg-white/5 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-500 text-left group h-72 flex flex-col justify-between shadow-2xl relative overflow-hidden"
+                        className="bg-white/5 backdrop-blur-3xl p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-white/10 hover:bg-white/10 transition-all duration-500 text-left group h-56 md:h-72 flex flex-col justify-between shadow-2xl relative overflow-hidden no-tap-highlight"
                     >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-highlight/5 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-highlight/10 transition-colors" />
                         
                         <div>
-                            <p className="text-xl font-black text-white group-hover:text-highlight transition-colors line-clamp-2 mb-4 tracking-tight leading-tight">{card.title}</p>
-                            <p className="text-xs font-bold text-white/30 leading-relaxed uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">{card.description}</p>
+                            <p className="text-lg md:text-xl font-black text-white group-hover:text-highlight transition-colors line-clamp-2 mb-2 md:mb-4 tracking-tight leading-tight uppercase">{card.title}</p>
+                            <p className="text-[10px] md:text-xs font-bold text-white/30 leading-relaxed uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">{card.description}</p>
                         </div>
                         
                         <div className="mt-auto flex justify-end">
-                            <div className="p-5 bg-white/5 rounded-[1.5rem] group-hover:bg-highlight/10 group-hover:scale-110 transition-all duration-500 shadow-xl border border-white/5">
-                                {card.icon}
+                            <div className="p-3 md:p-5 bg-white/5 rounded-2xl md:rounded-[1.5rem] group-hover:bg-highlight/10 group-hover:scale-110 transition-all duration-500 shadow-xl border border-white/5">
+                                {React.cloneElement(card.icon as React.ReactElement, { className: 'w-5 h-5 md:w-6 md:h-6 text-highlight' })}
                             </div>
                         </div>
                     </button>
