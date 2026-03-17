@@ -128,6 +128,15 @@ const ChatViewHeader: React.FC<{
             </div>
 
             <div className="flex items-center gap-3">
+                {apiKeyStatus === 'not_set' && (
+                    <button 
+                        onClick={onConfigureApiKey}
+                        className="p-2.5 text-danger hover:bg-danger/10 rounded-2xl transition-all active:scale-90 animate-pulse"
+                        title="Configurar Chave de API"
+                    >
+                        <Key className="w-6 h-6" />
+                    </button>
+                )}
                 <button className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-all active:scale-90">
                     <Search className="w-6 h-6" />
                 </button>
