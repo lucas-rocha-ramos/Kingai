@@ -213,7 +213,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 md:px-4 pb-4 md:pb-8 pt-2 safe-bottom">
+    <div className="w-full max-w-5xl mx-auto px-2 md:px-6 pb-4 md:pb-6 pt-2 safe-bottom z-10">
         {apiKeyStatus === 'not_set' && (
             <div className="mb-3 p-3 bg-danger/10 border border-danger/20 rounded-2xl flex items-center justify-between animate-fade-in">
                 <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="flex items-end gap-2 md:gap-4 p-4 md:p-6">
+                <div className="flex items-end gap-2 md:gap-3 p-3 md:p-4">
                     {/* Left Actions */}
                     <div className="flex items-center mb-1">
                         {canAttachFile && (
@@ -307,7 +307,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                     }
                                 }}
                                 placeholder={getPlaceholderText()}
-                                className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-white/20 text-lg resize-none max-h-[200px] custom-scrollbar py-2 leading-relaxed font-medium"
+                                className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-white/20 text-base md:text-lg resize-none max-h-[150px] custom-scrollbar py-2 leading-relaxed font-medium"
                                 rows={1}
                                 disabled={isLoading}
                             />

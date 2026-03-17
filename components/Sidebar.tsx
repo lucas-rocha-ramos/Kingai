@@ -168,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="relative" ref={newChatMenuRef}>
             <button 
               onClick={() => isOpen ? setNewChatMenuOpen(!newChatMenuOpen) : onToggle()}
-              className={`flex items-center gap-4 bg-white text-black hover:scale-[1.02] active:scale-95 transition-all duration-500 rounded-[1.5rem] shadow-[0_10px_30px_rgba(255,255,255,0.1)] h-14 ${isOpen ? 'px-6 w-full' : 'w-14 px-0 justify-center mx-auto'}`}
+              className={`flex items-center gap-4 bg-highlight text-black hover:scale-[1.02] active:scale-95 transition-all duration-500 rounded-[1.5rem] shadow-[0_10px_30px_rgba(0,255,0,0.2)] h-14 ${isOpen ? 'px-6 w-full' : 'w-14 px-0 justify-center mx-auto'}`}
             >
               <Plus className="w-6 h-6 stroke-[3]" />
               {isOpen && <span className="text-xs font-black uppercase tracking-[0.2em] whitespace-nowrap">Nova Sessão</span>}

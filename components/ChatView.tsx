@@ -1299,7 +1299,7 @@ const ChatView: React.FC<ChatViewProps> = (props) => {
   return (
     <div className="flex-1 flex flex-col bg-background min-h-0 relative">
       <ChatViewHeader activeChat={activeChatSession} agents={agents} onClearChat={onClearChat} isLoading={isLoading} onTogglePhotoShootMode={onTogglePhotoShootMode} onOpenCameoModal={onOpenCameoModal} apiKeyStatus={apiKeyStatus} onConfigureApiKey={onConfigureApiKey} />
-      <div className={`flex-1 overflow-y-auto p-4 md:p-8 space-y-2 pt-24 md:pt-8`} aria-live="polite">
+      <div className={`flex-1 overflow-y-auto p-4 md:p-10 space-y-4 pt-28 md:pt-12 pb-4`} aria-live="polite">
           {activeChatSession.messages.length === 0 && !isLoading && activeChatSession.mode === AIMode.EditorKing ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary p-4">
                   <div>
