@@ -22,6 +22,9 @@
 @layer base {
   body {
     @apply bg-background text-text-primary font-sans antialiased overflow-hidden;
+    height: 100dvh;
+    width: 100vw;
+    position: fixed;
     background-image: 
       radial-gradient(circle at 20% 20%, rgba(0, 255, 0, 0.03) 0%, transparent 40%),
       radial-gradient(circle at 80% 80%, rgba(0, 255, 0, 0.03) 0%, transparent 40%);
@@ -60,6 +63,30 @@
 
   .gemini-input-container {
     @apply relative flex items-center bg-white/5 backdrop-blur-xl rounded-3xl px-6 py-4 border border-white/10 focus-within:border-highlight/50 transition-all shadow-2xl;
+  }
+
+  /* PWA & Mobile Fixes */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  input, textarea {
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   .gemini-card {

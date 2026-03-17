@@ -145,20 +145,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       />
 
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-black/40 backdrop-blur-3xl transition-all duration-500 ease-in-out border-r border-white/10 ${isOpen ? 'w-[280px]' : 'w-0 -translate-x-full md:w-[80px] md:translate-x-0'}`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-black/60 backdrop-blur-3xl transition-all duration-500 ease-in-out border-r border-white/10 ${isOpen ? 'w-[85vw] md:w-[280px]' : 'w-0 -translate-x-full md:w-[80px] md:translate-x-0'}`}
       >
         {/* Top Section: Toggle & New Chat */}
-        <div className="p-6 flex flex-col gap-8">
+        <div className="p-4 md:p-6 flex flex-col gap-6 md:gap-8">
           <div className="flex items-center justify-between">
             {isOpen && (
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 bg-highlight rounded-full shadow-[0_0_10px_rgba(0,255,0,0.5)]" />
-                <span className="text-xl font-black tracking-tight text-white uppercase tracking-widest">Protons AI</span>
+                <span className="text-lg md:text-xl font-black tracking-tight text-white uppercase tracking-widest">Protons AI</span>
               </div>
             )}
             <button 
               onClick={onToggle}
-              className="p-2.5 hover:bg-white/10 rounded-2xl transition-all w-fit text-white/40 hover:text-white active:scale-90"
+              className="p-2.5 hover:bg-white/10 rounded-2xl transition-all w-fit text-white/40 hover:text-white active:scale-90 no-tap-highlight"
               title={isOpen ? "Recolher menu" : "Expandir menu"}
             >
               <Menu className="w-6 h-6" />

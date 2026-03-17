@@ -184,24 +184,24 @@ export const MessageItem: React.FC<MessageItemProps> = memo(({ message, currentM
   };
 
   return (
-    <div className={`flex w-full mb-10 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}>
-        <div className={`flex gap-5 max-w-[90%] md:max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex w-full mb-6 md:mb-10 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex gap-3 md:gap-5 max-w-[95%] md:max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
             {/* Avatar */}
             <div className="flex-shrink-0 mt-1">
                 {isUser ? (
-                    <div className="w-10 h-10 rounded-2xl bg-highlight flex items-center justify-center text-black font-black text-sm shadow-lg shadow-highlight/20">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-highlight flex items-center justify-center text-black font-black text-xs md:text-sm shadow-lg shadow-highlight/20">
                         U
                     </div>
                 ) : (
-                    <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-xl backdrop-blur-md">
-                        <Bot className="w-6 h-6 text-highlight" />
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-xl backdrop-blur-md">
+                        <Bot className="w-5 h-5 md:w-6 md:h-6 text-highlight" />
                     </div>
                 )}
             </div>
 
             {/* Message Content */}
-            <div className={`flex flex-col gap-3 ${isUser ? 'items-end' : 'items-start'}`}>
-                <div className={`group relative ${isUser ? 'bg-white/10 text-white px-6 py-4 rounded-[2rem] rounded-tr-lg border border-white/10 shadow-2xl backdrop-blur-3xl' : 'text-white w-full'}`}>
+            <div className={`flex flex-col gap-2 md:gap-3 ${isUser ? 'items-end' : 'items-start'}`}>
+                <div className={`group relative ${isUser ? 'bg-white/10 text-white px-4 py-3 md:px-6 md:py-4 rounded-[1.5rem] md:rounded-[2rem] rounded-tr-lg border border-white/10 shadow-2xl backdrop-blur-3xl' : 'text-white w-full'}`}>
                     {isEditing ? (
                         <div className="flex flex-col gap-3 min-w-[280px] md:min-w-[400px]">
                             <textarea

@@ -1086,7 +1086,7 @@ export const App = () => {
 
 
     return (
-        <div className="h-screen w-screen bg-[#050505] flex text-sm overflow-hidden relative">
+        <div className="h-[100dvh] w-screen bg-[#050505] flex text-sm overflow-hidden relative safe-top safe-bottom">
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-highlight/2 blur-[150px] rounded-full pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-highlight/2 blur-[150px] rounded-full pointer-events-none" />
             
@@ -1113,7 +1113,7 @@ export const App = () => {
                 {!isSidebarOpen && (
                     <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="absolute top-8 left-8 z-20 p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl text-white/40 hover:text-highlight hover:bg-white/10 transition-all shadow-2xl lg:hidden active:scale-90"
+                        className="absolute top-6 left-6 z-20 p-3.5 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl text-white/40 hover:text-highlight hover:bg-white/10 transition-all shadow-2xl md:hidden active:scale-90 no-tap-highlight"
                         aria-label="Abrir menu lateral"
                     >
                        <Menu className="w-6 h-6" />

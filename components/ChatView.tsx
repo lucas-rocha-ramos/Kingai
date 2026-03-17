@@ -113,16 +113,16 @@ const ChatViewHeader: React.FC<{
     const title = agent ? agent.name : activeChat.title;
 
     return (
-        <header className="flex items-center justify-between px-6 py-5 bg-black/20 backdrop-blur-3xl border-b border-white/10 sticky top-0 z-20">
-            <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-inner group transition-all hover:bg-white/10">
-                    <Bot className="w-6 h-6 text-highlight group-hover:scale-110 transition-transform" />
+        <header className="flex items-center justify-between px-4 md:px-6 py-4 md:py-5 bg-black/20 backdrop-blur-3xl border-b border-white/10 sticky top-0 z-20">
+            <div className="flex items-center gap-3 md:gap-4">
+                <div className="p-2.5 md:p-3 bg-white/5 rounded-xl md:rounded-2xl border border-white/10 shadow-inner group transition-all hover:bg-white/10">
+                    <Bot className="w-5 h-5 md:w-6 md:h-6 text-highlight group-hover:scale-110 transition-transform" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-black text-white leading-tight tracking-tight">{title}</h2>
+                    <h2 className="text-lg md:text-xl font-black text-white leading-tight tracking-tight truncate max-w-[150px] md:max-w-none">{title}</h2>
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-highlight rounded-full animate-pulse shadow-[0_0_8px_rgba(0,255,0,0.5)]" />
-                        <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-black">{activeChat.mode}</p>
+                        <p className="text-[8px] md:text-[9px] text-white/30 uppercase tracking-[0.2em] font-black">{activeChat.mode}</p>
                     </div>
                 </div>
             </div>
@@ -188,12 +188,12 @@ const WelcomePlaceholder: React.FC<{
     ];
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 max-w-7xl mx-auto w-full animate-fade-in overflow-y-auto custom-scrollbar">
-            <div className="w-full mb-20 text-left px-4">
-                <h1 className="text-7xl md:text-9xl font-black mb-8 tracking-tighter">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-12 max-w-7xl mx-auto w-full animate-fade-in overflow-y-auto custom-scrollbar">
+            <div className="w-full mb-12 md:mb-20 text-left px-2 md:px-4">
+                <h1 className="text-5xl md:text-9xl font-black mb-4 md:mb-8 tracking-tighter">
                     <span className="bg-gradient-to-br from-white via-white/90 to-white/40 bg-clip-text text-transparent">Olá!</span>
                 </h1>
-                <h2 className="text-4xl md:text-6xl font-black text-white/20 tracking-tight leading-tight max-w-4xl uppercase">Como posso ajudar você hoje?</h2>
+                <h2 className="text-2xl md:text-6xl font-black text-white/20 tracking-tight leading-tight max-w-4xl uppercase">Como posso ajudar você hoje?</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 w-full px-4">
@@ -230,12 +230,12 @@ const SuggestionChips: React.FC<{
     if (suggestions.length === 0) return null;
 
     return (
-        <div className="px-6 md:px-10 pb-4 flex-wrap gap-2 flex">
+        <div className="px-4 md:px-10 pb-4 flex gap-2 overflow-x-auto no-scrollbar">
             {suggestions.map((suggestion, index) => (
                 <button
                     key={index}
                     onClick={() => onSendMessage(suggestion)}
-                    className="px-4 py-2 bg-white/5 border border-white/10 text-white/50 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white/10 hover:text-white transition-all active:scale-95 backdrop-blur-md"
+                    className="px-4 py-2 bg-white/5 border border-white/10 text-white/50 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-white/10 hover:text-white transition-all active:scale-95 backdrop-blur-md whitespace-nowrap"
                 >
                     {suggestion}
                 </button>

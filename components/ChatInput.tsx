@@ -209,15 +209,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 pb-8 pt-2">
-        <div className="relative flex flex-col bg-white/5 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 shadow-2xl transition-all focus-within:border-highlight/30 focus-within:shadow-[0_0_40px_rgba(0,255,0,0.05)] overflow-hidden">
+    <div className="w-full max-w-5xl mx-auto px-2 md:px-4 pb-4 md:pb-8 pt-2">
+        <div className="relative flex flex-col bg-white/5 backdrop-blur-3xl rounded-[2rem] md:rounded-[2.5rem] border border-white/10 shadow-2xl transition-all focus-within:border-highlight/30 focus-within:shadow-[0_0_40px_rgba(0,255,0,0.05)] overflow-hidden">
             
             {/* Image Previews */}
             {selectedFilePreviews.length > 0 && (
-                <div className="flex gap-4 p-6 overflow-x-auto custom-scrollbar border-b border-white/5 bg-black/20">
+                <div className="flex gap-3 p-4 md:p-6 overflow-x-auto custom-scrollbar border-b border-white/5 bg-black/20">
                     {selectedFilePreviews.map((preview, index) => (
                         <div key={index} className="relative group flex-shrink-0">
-                            <img src={preview} className="h-24 w-24 object-cover rounded-2xl border border-white/10 shadow-lg" alt="" />
+                            <img src={preview} className="h-20 w-20 md:h-24 md:w-24 object-cover rounded-xl md:rounded-2xl border border-white/10 shadow-lg" alt="" />
                             
                             {currentMode === AIMode.EditorKing && (
                                 <button 
@@ -331,8 +331,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 </div>
 
                 {/* Bottom Tools Bar */}
-                <div className="flex items-center justify-between px-6 py-3.5 border-t border-white/5 bg-white/5">
-                    <div className="flex items-center gap-6">
+                <div className="flex items-center justify-between px-4 md:px-6 py-3 border-t border-white/5 bg-white/5 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center gap-4 md:gap-6 flex-shrink-0">
                         <button 
                             type="button"
                             onClick={() => setWebSearch(!webSearch)}
