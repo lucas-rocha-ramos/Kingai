@@ -11,7 +11,7 @@ import ImagePreviewModal from './components/ImagePreviewModal';
 import CanvasModal from './components/CanvasModal';
 import CameoSetupModal from './components/CameoSetupModal';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
-import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, doc, setDoc, getDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp, Timestamp, writeBatch } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 import { AGENT_CONVERSATION_TTL_MS } from './constants';
@@ -88,6 +88,18 @@ export const App = () => {
                     lastLoginAt: serverTimestamp(),
                     createdAt: serverTimestamp() // setDoc with merge or check existence
                 }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`));
+            }
+        });
+
+        // Handle redirect result for mobile
+        getRedirectResult(auth).then((result) => {
+            if (result?.user) {
+                setCurrentUser(result.user);
+            }
+        }).catch((err) => {
+            console.error("Erro no redirect result:", err);
+            if (err.code === 'auth/invalid-action-code' || err.code === 'auth/argument-error') {
+                setAuthError("Erro na autenticação. Tente novamente.");
             }
         });
         
@@ -1084,7 +1096,15 @@ export const App = () => {
     const handleLogin = async () => {
         try {
             setAuthError(null);
-            await signInWithPopup(auth, googleProvider);
+            
+            // Detect mobile to use redirect instead of popup
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                await signInWithRedirect(auth, googleProvider);
+            } else {
+                await signInWithPopup(auth, googleProvider);
+            }
         } catch (err: any) {
             console.error("Erro no login Google:", err);
             setAuthError("Falha ao entrar com Google. Tente novamente.");
