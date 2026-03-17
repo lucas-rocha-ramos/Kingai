@@ -161,7 +161,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="p-3 hover:bg-white/5 rounded-[1.25rem] transition-all w-fit text-white/20 hover:text-white active:scale-90 no-tap-highlight border border-transparent hover:border-white/10"
               title={isOpen ? "Recolher menu" : "Expandir menu"}
             >
-              <Menu className="w-6 h-6" />
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
 

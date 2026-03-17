@@ -4,7 +4,7 @@ import { AIMode, GenerationTools, GeneratedImage } from '../types';
 import { 
     Paperclip, Send, X, Settings2, Lightbulb, 
     Telescope, Sparkles, Globe, Pencil, Image as ImageIcon, 
-    Camera, Mic, Video, Brush, Plus
+    Camera, Mic, Video, Brush, Plus, Key
 } from 'lucide-react';
 import CameraModal from './CameraModal';
 import MaskingModal from './MaskingModal';
@@ -213,22 +213,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-3 md:px-4 pb-4 md:pb-8 pt-2 safe-bottom">
+    <div className="w-full max-w-5xl mx-auto px-2 md:px-4 pb-4 md:pb-8 pt-2 safe-bottom">
         {apiKeyStatus === 'not_set' && (
-            <div className="mb-4 p-4 bg-danger/10 border border-danger/20 rounded-3xl flex items-center justify-between animate-fade-in">
-                <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-danger rounded-full animate-pulse" />
-                    <p className="text-[10px] md:text-xs font-bold text-danger uppercase tracking-widest">Chave de API não configurada</p>
+            <div className="mb-3 p-3 bg-danger/10 border border-danger/20 rounded-2xl flex items-center justify-between animate-fade-in">
+                <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-danger rounded-full animate-pulse" />
+                    <p className="text-[9px] md:text-xs font-bold text-danger uppercase tracking-widest">API Key Pendente</p>
                 </div>
                 <button 
                     onClick={onConfigureApiKey}
-                    className="px-4 py-2 bg-danger text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-danger/80 transition-all active:scale-95"
+                    className="px-3 py-1.5 bg-danger text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-danger/80 transition-all active:scale-95"
                 >
                     Configurar
                 </button>
             </div>
         )}
-        <div className="relative flex flex-col bg-black/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all focus-within:border-highlight/30 focus-within:shadow-[0_0_60px_rgba(0,255,0,0.08)] overflow-hidden">
+        <div className="relative flex flex-col bg-black/40 backdrop-blur-3xl rounded-[2rem] md:rounded-[2.5rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all focus-within:border-highlight/30 focus-within:shadow-[0_0_60px_rgba(0,255,0,0.08)] overflow-hidden">
             
             {/* Image Previews */}
             {selectedFilePreviews.length > 0 && (
