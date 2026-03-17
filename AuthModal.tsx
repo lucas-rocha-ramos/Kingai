@@ -116,6 +116,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, 
             Entrar com Google
           </button>
 
+          {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && (
+            <button
+              onClick={() => window.open(window.location.href, '_blank')}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 text-sm font-medium text-text-secondary bg-panel-lighter border border-border hover:bg-panel-light rounded-lg transition-all"
+            >
+              Abrir em Nova Aba (Recomendado para Celular)
+            </button>
+          )}
+
           {error && (
             <div className="p-3 bg-danger/10 border border-danger/20 rounded-lg">
               <p className="text-danger text-xs text-center">{error}</p>

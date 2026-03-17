@@ -90,18 +90,6 @@ export const App = () => {
                 }, { merge: true }).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`));
             }
         });
-
-        // Handle redirect result for mobile
-        getRedirectResult(auth).then((result) => {
-            if (result?.user) {
-                setCurrentUser(result.user);
-            }
-        }).catch((err) => {
-            console.error("Erro no redirect result:", err);
-            if (err.code === 'auth/invalid-action-code' || err.code === 'auth/argument-error') {
-                setAuthError("Erro na autenticação. Tente novamente.");
-            }
-        });
         
         const started = localStorage.getItem('protons-ai-started');
         if (started === 'true') {
@@ -109,7 +97,6 @@ export const App = () => {
         }
         return () => unsubscribe();
     }, []);
-
     // Sync Chats from Firestore
     useEffect(() => {
         if (!currentUser) {
@@ -1097,17 +1084,25 @@ export const App = () => {
         try {
             setAuthError(null);
             
-            // Detect mobile to use redirect instead of popup
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // Use signInWithPopup as it's more reliable in the AI Studio iframe
+            await signInWithPopup(auth, googleProvider);
             
-            if (isMobile) {
-                await signInWithRedirect(auth, googleProvider);
-            } else {
-                await signInWithPopup(auth, googleProvider);
-            }
         } catch (err: any) {
             console.error("Erro no login Google:", err);
-            setAuthError("Falha ao entrar com Google. Tente novamente.");
+            
+            if (err.code === 'auth/popup-blocked') {
+                setAuthError("O navegador bloqueou a janela de login. Por favor, permita popups para este site.");
+            } else if (err.code === 'auth/cancelled-popup-request') {
+                // Ignore user cancellation
+            } else {
+                // For mobile "invalid action" or other iframe issues
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    setAuthError("Erro no login. Tente abrir o app em uma nova aba do navegador para entrar.");
+                } else {
+                    setAuthError("Falha ao entrar com Google. Tente novamente ou verifique se os popups estão permitidos.");
+                }
+            }
         }
     };
 
