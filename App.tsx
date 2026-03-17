@@ -1107,12 +1107,12 @@ export const App = () => {
             } else if (err.code === 'auth/cancelled-popup-request') {
                 // Ignore user cancellation
             } else {
-                // For mobile "invalid action" or other iframe issues
+                // Show the specific error code to help debugging
                 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
                 if (isMobile) {
-                    setAuthError("Erro no login. Tente abrir o app em uma nova aba do navegador para entrar.");
+                    setAuthError(`Erro (${err.code}): Tente abrir o app em uma nova aba do navegador para entrar.`);
                 } else {
-                    setAuthError("Falha ao entrar com Google. Tente novamente ou verifique se os popups estão permitidos.");
+                    setAuthError(`Erro (${err.code}): Verifique se os popups estão permitidos e se o domínio está autorizado no Firebase.`);
                 }
             }
         }
