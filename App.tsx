@@ -10,7 +10,6 @@ import { AuthModal } from './AuthModal';
 import ImagePreviewModal from './components/ImagePreviewModal';
 import CanvasModal from './components/CanvasModal';
 import CameoSetupModal from './components/CameoSetupModal';
-import { Menu, Plus } from 'lucide-react';
 import {
   generateFastTextResponseStream,
   generateResponse,
@@ -809,7 +808,7 @@ export const App = () => {
                 });
 
                 if (response.error && (!response.images || response.images.length === 0)) {
-                    updateMessageInChat(currentChatId, aiMessageId, { error: response.error, isLoading: false, isGeneratingImage: false, text: response.text || "Ocorreu um erro." });
+                    updateMessageInChat(currentChatId, aiMessageId, { error: response.error, isLoading: false, isGeneratingImage: false, text: response.text || response.error });
                 } else if (response.images && response.images.length > 0) {
                     setGeneratedImages(prev => [...prev, ...response.images!]);
                     updateMessageInChat(currentChatId, aiMessageId, {
@@ -1046,6 +1045,11 @@ export const App = () => {
         }
     };
 
+    useEffect(() => {
+        (window as any).toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+        (window as any).handleNewChat = () => handleNewChat(AIMode.Ultra);
+    }, []);
+
     const handleLogout = () => {
         setCurrentUser(null);
         localStorage.removeItem('protons-ai-user');
@@ -1121,37 +1125,6 @@ export const App = () => {
             />
             
             <main className={`flex-1 flex flex-col min-w-0 relative transition-all duration-700 ease-in-out ${isSidebarOpen ? 'md:ml-[320px]' : 'md:ml-[88px]'}`}>
-                {/* Dynamic Island / Mobile Header */}
-                <div className="md:hidden absolute top-4 left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-[450px]">
-                    <div className="bg-black/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] px-4 py-2 flex items-center justify-between shadow-2xl">
-                        <button
-                            onClick={() => setIsSidebarOpen(true)}
-                            className="p-3 text-white/60 hover:text-white transition-colors no-tap-highlight"
-                        >
-                            <Menu className="w-6 h-6" />
-                        </button>
-                        
-                        <div className="flex flex-col items-center justify-center min-w-0 px-2">
-                            <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-highlight rounded-full animate-pulse flex-shrink-0" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 truncate max-w-[120px]">{mobileTitle}</span>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={() => handleNewChat(AIMode.Ultra)}
-                                className="p-3 text-highlight hover:bg-highlight/10 rounded-full transition-all active:scale-90"
-                            >
-                                <Plus className="w-6 h-6" />
-                            </button>
-                            <div className="w-10 h-10 rounded-full bg-highlight/10 border border-highlight/20 flex items-center justify-center text-[10px] font-black text-highlight">
-                                {currentUser.username[0].toUpperCase()}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {activeView === 'chat' ? (
                     <ChatView
                         activeChatSession={activeChatSession}

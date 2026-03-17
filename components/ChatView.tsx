@@ -7,7 +7,7 @@ import {
     Scissors, Palette, ChevronDown, ChevronUp,
     Download, Share2, Copy, ThumbsUp, ThumbsDown,
     RotateCcw, Code, ExternalLink, Maximize2,
-    Key, Video as VideoIcon, Settings, Trash2, UserCircle, Send, UploadCloud, Download as DownloadIcon, X, Eye, EyeOff, Check, RefreshCw, Layers, User as UserIcon, HelpCircle, Menu, Pencil
+    Key, Video as VideoIcon, Settings, Trash2, UserCircle, Send, UploadCloud, Download as DownloadIcon, X, Eye, EyeOff, Check, RefreshCw, Layers, User as UserIcon, HelpCircle, Menu, Pencil, Plus
 } from 'lucide-react';
 import { Message, AIMode, ChatSession, Agent, GenerationTools, GeneratedImage, VisagistaResult, HumanKingProfile, ProtonsHQProfile } from '../types'; 
 import { MessageItem } from './MessageItem';
@@ -113,47 +113,76 @@ const ChatViewHeader: React.FC<{
     const title = agent ? agent.name : activeChat.title;
 
     return (
-        <header className="hidden md:flex items-center justify-between px-4 md:px-6 py-4 md:py-5 bg-black/20 backdrop-blur-3xl border-b border-white/10 sticky top-0 z-20">
-            <div className="flex items-center gap-3 md:gap-4">
-                <div className="p-2.5 md:p-3 bg-white/5 rounded-xl md:rounded-2xl border border-white/10 shadow-inner group transition-all hover:bg-white/10">
-                    <Bot className="w-5 h-5 md:w-6 md:h-6 text-highlight group-hover:scale-110 transition-transform" />
-                </div>
-                <div>
-                    <h2 className="text-lg md:text-xl font-black text-white leading-tight tracking-tight truncate max-w-[150px] md:max-w-none">{title}</h2>
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 bg-highlight rounded-full animate-pulse shadow-[0_0_8px_rgba(0,255,0,0.5)]" />
-                        <p className="text-[8px] md:text-[9px] text-white/30 uppercase tracking-[0.2em] font-black">{activeChat.mode}</p>
+        <>
+            {/* Desktop Header */}
+            <header className="hidden md:flex items-center justify-between px-6 py-5 bg-black/20 backdrop-blur-3xl border-b border-white/10 sticky top-0 z-20">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10 shadow-inner group transition-all hover:bg-white/10">
+                        <Bot className="w-6 h-6 text-highlight group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black text-white leading-tight tracking-tight">{title}</h2>
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-highlight rounded-full animate-pulse shadow-[0_0_8px_rgba(0,255,0,0.5)]" />
+                            <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-black">{activeChat.mode}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-                {apiKeyStatus === 'not_set' && (
-                    <button 
-                        onClick={onConfigureApiKey}
-                        className="p-2.5 text-danger hover:bg-danger/10 rounded-2xl transition-all active:scale-90 animate-pulse"
-                        title="Configurar Chave de API"
-                    >
-                        <Key className="w-6 h-6" />
-                    </button>
-                )}
-                <button className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-all active:scale-90">
-                    <Search className="w-6 h-6" />
-                </button>
-                <div className="relative" ref={menuRef}>
-                    <button onClick={() => setMenuOpen(!menuOpen)} className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-all active:scale-90">
-                        <MoreVertical className="w-6 h-6" />
-                    </button>
-                    {menuOpen && (
-                        <div className="absolute right-0 mt-3 w-64 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl z-30 py-3 overflow-hidden animate-fade-in">
-                            <button onClick={() => { onClearChat(activeChat.id); setMenuOpen(false); }} className="w-full text-left px-6 py-4 text-sm font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
-                                <Eraser className="w-4 h-4 text-highlight" /> Limpar conversa
-                            </button>
-                        </div>
+                <div className="flex items-center gap-3">
+                    {apiKeyStatus === 'not_set' && (
+                        <button 
+                            onClick={onConfigureApiKey}
+                            className="p-2.5 text-danger hover:bg-danger/10 rounded-2xl transition-all active:scale-90 animate-pulse"
+                            title="Configurar Chave de API"
+                        >
+                            <Key className="w-6 h-6" />
+                        </button>
                     )}
+                    <button className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-all active:scale-90">
+                        <Search className="w-6 h-6" />
+                    </button>
+                    <div className="relative" ref={menuRef}>
+                        <button onClick={() => setMenuOpen(!menuOpen)} className="p-2.5 text-white/40 hover:text-white hover:bg-white/10 rounded-2xl transition-all active:scale-90">
+                            <MoreVertical className="w-6 h-6" />
+                        </button>
+                        {menuOpen && (
+                            <div className="absolute right-0 mt-3 w-64 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl z-30 py-3 overflow-hidden animate-fade-in">
+                                <button onClick={() => { onClearChat(activeChat.id); setMenuOpen(false); }} className="w-full text-left px-6 py-4 text-sm font-bold text-white hover:bg-white/10 flex items-center gap-3 transition-colors">
+                                    <Eraser className="w-4 h-4 text-highlight" /> Limpar conversa
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </header>
+            </header>
+
+            {/* Mobile Header */}
+            <header className="md:hidden flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 safe-top">
+                <button 
+                    onClick={() => (window as any).toggleSidebar?.()}
+                    className="p-2 text-white/40 hover:text-white transition-all active:scale-90"
+                >
+                    <Menu className="w-6 h-6" />
+                </button>
+                
+                <div className="flex flex-col items-center justify-center min-w-0 px-2">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 bg-highlight rounded-full animate-pulse flex-shrink-0" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 truncate max-w-[120px]">{title}</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => (window as any).handleNewChat?.()}
+                        className="p-2 bg-highlight text-black rounded-xl transition-all active:scale-90 shadow-lg shadow-highlight/20"
+                    >
+                        <Plus className="w-5 h-5 stroke-[3]" />
+                    </button>
+                </div>
+            </header>
+        </>
     );
 });
 
@@ -1299,7 +1328,7 @@ const ChatView: React.FC<ChatViewProps> = (props) => {
   return (
     <div className="flex-1 flex flex-col bg-background min-h-0 relative">
       <ChatViewHeader activeChat={activeChatSession} agents={agents} onClearChat={onClearChat} isLoading={isLoading} onTogglePhotoShootMode={onTogglePhotoShootMode} onOpenCameoModal={onOpenCameoModal} apiKeyStatus={apiKeyStatus} onConfigureApiKey={onConfigureApiKey} />
-      <div className={`flex-1 overflow-y-auto p-4 md:p-10 space-y-4 pt-28 md:pt-12 pb-4`} aria-live="polite">
+      <div className={`flex-1 overflow-y-auto p-4 md:p-10 space-y-4 pt-4 md:pt-12 pb-4`} aria-live="polite">
           {activeChatSession.messages.length === 0 && !isLoading && activeChatSession.mode === AIMode.EditorKing ? (
               <div className="h-full flex flex-col items-center justify-center text-center text-text-secondary p-4">
                   <div>

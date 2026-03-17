@@ -25,7 +25,12 @@ const getErrorMessage = (error: any): string => {
 };
 
 const getApiKey = () => {
-    return (process.env.API_KEY || process.env.GEMINI_API_KEY) as string;
+    const key = (process.env.API_KEY || process.env.GEMINI_API_KEY) as string;
+    if (!key || key === 'undefined') {
+        console.error("API Key não encontrada no ambiente.");
+        return "";
+    }
+    return key;
 };
 
 /**
@@ -111,7 +116,7 @@ export const generateSvgFromDescription = async (description: string): Promise<G
 /**
  * Helper to generate images using "Nano Banana" (Gemini 2.5/3 Flash Image)
  */
-async function generateNanoBananaImage(ai: any, prompt: string, userImages?: { base64: string; mimeType: string }[], maskImage?: { base64: string; mimeType: string }, isLabMode: boolean = false, aspectRatio: string = '1:1'): Promise<GenerationResponse> {
+async function generateNanoBananaImage(ai: any, prompt: string, userImages?: { base64: string; mimeType: string }[], maskImage?: { base64: string; mimeType: string }, isLabMode: boolean = false, aspectRatio: string = '1:1', numberOfImages: number = 1): Promise<GenerationResponse> {
     return await withRetry(async () => {
         const parts: any[] = [];
         
@@ -146,29 +151,51 @@ async function generateNanoBananaImage(ai: any, prompt: string, userImages?: { b
             { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
         ];
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: { parts },
-            config: { 
-                safetySettings,
-                aspectRatio
+        const responsePromises = [];
+        for (let i = 0; i < numberOfImages; i++) {
+            try {
+                responsePromises.push(ai.models.generateContent({
+                    model: 'gemini-2.5-flash-image',
+                    contents: { parts },
+                    config: { 
+                        safetySettings,
+                        aspectRatio
+                    }
+                }));
+            } catch (err) {
+                console.error("Erro ao enfileirar promessa de geração:", err);
+                throw err;
             }
-        });
+        }
 
+        let responses;
+        try {
+            responses = await Promise.all(responsePromises);
+        } catch (err: any) {
+            console.error("Erro na chamada da API Gemini (Nano Banana):", err);
+            const status = getErrorCode(err);
+            const msg = getErrorMessage(err);
+            if (status === 403) throw new Error("Acesso negado. Verifique se sua chave de API tem permissão para o modelo Gemini 2.5 Flash Image.");
+            if (status === 429) throw new Error("Limite de cota atingido para geração de imagens.");
+            if (status === 0) throw new Error("Erro de rede ao conectar com a API de imagens. Verifique sua conexão.");
+            throw err;
+        }
         const images: GeneratedImage[] = [];
         let textResponse = '';
-        const responseParts = response.candidates?.[0]?.content?.parts;
-        
-        if (responseParts) {
-            for (const part of responseParts) {
-                if (part.inlineData) {
-                    images.push({
-                        id: uuidv4(), base64: part.inlineData.data, mimeType: part.inlineData.mimeType,
-                        prompt, originalUserPrompt: prompt, source: 'gemini', createdAt: new Date(),
-                        aspectRatio
-                    });
-                } else if (part.text) {
-                    textResponse += part.text;
+
+        for (const response of responses) {
+            const responseParts = response.candidates?.[0]?.content?.parts;
+            if (responseParts) {
+                for (const part of responseParts) {
+                    if (part.inlineData) {
+                        images.push({
+                            id: uuidv4(), base64: part.inlineData.data, mimeType: part.inlineData.mimeType,
+                            prompt, originalUserPrompt: prompt, source: 'gemini', createdAt: new Date(),
+                            aspectRatio
+                        });
+                    } else if (part.text && !textResponse) {
+                        textResponse = part.text;
+                    }
                 }
             }
         }
@@ -196,11 +223,15 @@ export const generateResponse = async (options: {
 
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: getApiKey() });
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                return { error: 'Chave de API não configurada. Por favor, configure sua chave no menu de configurações.' };
+            }
+            const ai = new GoogleGenAI({ apiKey });
 
             // KING LAB / EDITOR KING / KING STUDIO / PROTONS HQ (Force Nano Banana)
             if (mode === AIMode.KingLab || mode === AIMode.EditorKing || mode === AIMode.KingStudio || mode === AIMode.ProtonsHQ) {
-                return await generateNanoBananaImage(ai, prompt, userImages, maskImage, mode === AIMode.KingLab || mode === AIMode.ProtonsHQ);
+                return await generateNanoBananaImage(ai, prompt, userImages, maskImage, mode === AIMode.KingLab || mode === AIMode.ProtonsHQ, '1:1', numberOfImages);
             }
 
             // DESIGN STUDIO (Imagen with automatic fallback)
@@ -220,7 +251,7 @@ export const generateResponse = async (options: {
                     const status = getErrorCode(err);
                     if (status === 403 || status === 429) {
                         console.warn("Acesso negado ao Imagen. Usando Nano Banana...");
-                        return await generateNanoBananaImage(ai, prompt, userImages);
+                        return await generateNanoBananaImage(ai, prompt, userImages, undefined, false, '1:1', numberOfImages);
                     }
                     throw err;
                 }
@@ -263,7 +294,11 @@ export const generateResponse = async (options: {
 export const generateVideoFromPromptService = async (prompt: string, aspectRatio: string | null, image?: { base64: string; mimeType: string; }, referenceImages?: { base64: string; mimeType: string; }[]) => {
     try {
         return await withRetry(async () => {
-            const aiForVideo = new GoogleGenAI({ apiKey: getApiKey() });
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                return { error: 'Chave de API não configurada.' };
+            }
+            const aiForVideo = new GoogleGenAI({ apiKey });
             const hasCameo = referenceImages && referenceImages.length > 0;
             const request: any = { prompt: prompt, config: { numberOfVideos: 1 } };
 
@@ -300,7 +335,11 @@ export const generateVideoFromPromptService = async (prompt: string, aspectRatio
 export const generateVisagistaResponse = async (userPrompt: string, userImage: { base64: string; mimeType: string }, updateCallback: (message: string) => void) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: getApiKey() });
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                return { error: 'Chave de API não configurada.' };
+            }
+            const ai = new GoogleGenAI({ apiKey });
             updateCallback('Analisando biometria facial...');
 
             const schema = {
@@ -368,7 +407,9 @@ export const generateVisagistaResponse = async (userPrompt: string, userImage: {
 
 export const generateTtsAudio = async (text: string) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        const apiKey = getApiKey();
+        if (!apiKey) return { error: 'Chave de API não configurada.' };
+        const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text }] }],
@@ -381,7 +422,9 @@ export const generateTtsAudio = async (text: string) => {
 export const interpretCanvasSketch = async (base64: string) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: getApiKey() });
+            const apiKey = getApiKey();
+            if (!apiKey) return { error: 'Chave de API não configurada.' };
+            const ai = new GoogleGenAI({ apiKey });
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
                 contents: { parts: [{ text: 'Descreva este esboço de forma detalhada para que possa ser usado como prompt de imagem.' }, { inlineData: { data: base64, mimeType: 'image/png' } }]}
@@ -393,7 +436,9 @@ export const interpretCanvasSketch = async (base64: string) => {
 
 export const generateImageFromCanvas = async (p: string, s: string, m: AIMode, sketch?: { base64: string, mimeType: string }) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        const apiKey = getApiKey();
+        if (!apiKey) return { error: 'Chave de API não configurada.' };
+        const ai = new GoogleGenAI({ apiKey });
         const finalPrompt = `${p}, ${s}`;
         return await generateNanoBananaImage(ai, finalPrompt, sketch ? [sketch] : undefined);
     } catch (e) { return { error: 'Erro ao renderizar imagem' }; }
@@ -401,7 +446,9 @@ export const generateImageFromCanvas = async (p: string, s: string, m: AIMode, s
 
 export const generateHumanFromDescription = async (d: any) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        const apiKey = getApiKey();
+        if (!apiKey) return { error: 'Chave de API não configurada.' };
+        const ai = new GoogleGenAI({ apiKey });
         const prompt = `Portrait of ${d.appearance}, ultra-realistic, 8k. Portrait mode.`;
         try {
             const response = await ai.models.generateImages({
@@ -420,7 +467,9 @@ export const generateHumanFromDescription = async (d: any) => {
 export const analyzeImageForNanoStudio = async (b: string, m: string) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: getApiKey() });
+            const apiKey = getApiKey();
+            if (!apiKey) return { error: 'Chave de API não configurada.' };
+            const ai = new GoogleGenAI({ apiKey });
             const prompt = `Aja como um especialista em design gráfico e análise de imagem. Analise esta arte/imagem e identifique todos os elementos editáveis para torná-la 100% editável em um estúdio.
             Retorne um JSON estritamente seguindo este esquema:
             {
