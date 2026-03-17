@@ -1085,6 +1085,10 @@ export const App = () => {
     const handleDeleteAgent = (agentId: string) => {};
 
 
+    const activeChat = chatSessions.find(c => c.id === currentChatId);
+    const agent = activeChat?.agentId ? agents.find(a => a.id === activeChat.agentId) : null;
+    const mobileTitle = agent ? agent.name : (activeChat?.title || "Protons AI");
+
     return (
         <div className="h-[100dvh] w-screen bg-[#000000] flex text-sm overflow-hidden relative">
             {/* Background Accents */}
@@ -1121,9 +1125,9 @@ export const App = () => {
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-highlight rounded-full animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Protons AI</span>
+                        <div className="flex items-center gap-2 max-w-[150px]">
+                            <div className="w-2 h-2 bg-highlight rounded-full animate-pulse flex-shrink-0" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 truncate">{mobileTitle}</span>
                         </div>
                         <div className="w-9 h-9 rounded-full bg-highlight/10 border border-highlight/20 flex items-center justify-center text-[10px] font-black text-highlight">
                             {currentUser.username[0].toUpperCase()}

@@ -24,6 +24,10 @@ const getErrorMessage = (error: any): string => {
     return msg.toLowerCase();
 };
 
+const getApiKey = () => {
+    return (process.env.API_KEY || process.env.GEMINI_API_KEY) as string;
+};
+
 /**
  * Helper for exponential backoff retries
  */
@@ -68,7 +72,7 @@ const buildHistory = (history: Message[]) => {
 
 export async function* generateFastTextResponseStream(prompt: string, history: Message[]) {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
         const contents = [...buildHistory(history), { role: 'user', parts: [{ text: prompt }] }];
         
         const responseStream = await ai.models.generateContentStream({
@@ -89,7 +93,7 @@ export async function* generateFastTextResponseStream(prompt: string, history: M
 export const generateSvgFromDescription = async (description: string): Promise<GenerationResponse> => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
             const prompt = `Crie um logotipo SVG minimalista para: "${description}". Retorne APENAS o código <svg> puro.`;
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
@@ -192,7 +196,7 @@ export const generateResponse = async (options: {
 
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
             // KING LAB / EDITOR KING / KING STUDIO / PROTONS HQ (Force Nano Banana)
             if (mode === AIMode.KingLab || mode === AIMode.EditorKing || mode === AIMode.KingStudio || mode === AIMode.ProtonsHQ) {
@@ -250,16 +254,16 @@ export const generateResponse = async (options: {
     } catch (error: any) {
         const status = getErrorCode(error);
         const msg = getErrorMessage(error);
-        if (status === 403) return { error: 'Sua chave de API não possui permissão para modelos Pro ou Imagen. O Protons AI tentou usar o motor básico, mas a permissão ainda foi negada. Verifique se o faturamento está configurado no Google AI Studio.' };
+        if (status === 403) return { error: 'Sua chave de API não possui permissão para modelos Pro ou Imagen. Verifique se o faturamento está configurado no Google AI Studio.' };
         if (status === 429 || msg.includes('quota')) return { error: 'Limite de créditos atingido. Aguarde alguns minutos.' };
-        return { error: 'Erro inesperado no laboratório.' };
+        return { error: `Erro no laboratório: ${msg || error.message || 'Falha na conexão'}` };
     }
 };
 
 export const generateVideoFromPromptService = async (prompt: string, aspectRatio: string | null, image?: { base64: string; mimeType: string; }, referenceImages?: { base64: string; mimeType: string; }[]) => {
     try {
         return await withRetry(async () => {
-            const aiForVideo = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const aiForVideo = new GoogleGenAI({ apiKey: getApiKey() });
             const hasCameo = referenceImages && referenceImages.length > 0;
             const request: any = { prompt: prompt, config: { numberOfVideos: 1 } };
 
@@ -296,7 +300,7 @@ export const generateVideoFromPromptService = async (prompt: string, aspectRatio
 export const generateVisagistaResponse = async (userPrompt: string, userImage: { base64: string; mimeType: string }, updateCallback: (message: string) => void) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
             updateCallback('Analisando biometria facial...');
 
             const schema = {
@@ -364,7 +368,7 @@ export const generateVisagistaResponse = async (userPrompt: string, userImage: {
 
 export const generateTtsAudio = async (text: string) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text }] }],
@@ -377,7 +381,7 @@ export const generateTtsAudio = async (text: string) => {
 export const interpretCanvasSketch = async (base64: string) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
                 contents: { parts: [{ text: 'Descreva este esboço de forma detalhada para que possa ser usado como prompt de imagem.' }, { inlineData: { data: base64, mimeType: 'image/png' } }]}
@@ -389,7 +393,7 @@ export const interpretCanvasSketch = async (base64: string) => {
 
 export const generateImageFromCanvas = async (p: string, s: string, m: AIMode, sketch?: { base64: string, mimeType: string }) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
         const finalPrompt = `${p}, ${s}`;
         return await generateNanoBananaImage(ai, finalPrompt, sketch ? [sketch] : undefined);
     } catch (e) { return { error: 'Erro ao renderizar imagem' }; }
@@ -397,7 +401,7 @@ export const generateImageFromCanvas = async (p: string, s: string, m: AIMode, s
 
 export const generateHumanFromDescription = async (d: any) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
         const prompt = `Portrait of ${d.appearance}, ultra-realistic, 8k. Portrait mode.`;
         try {
             const response = await ai.models.generateImages({
@@ -416,7 +420,7 @@ export const generateHumanFromDescription = async (d: any) => {
 export const analyzeImageForNanoStudio = async (b: string, m: string) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
             const prompt = `Aja como um especialista em design gráfico e análise de imagem. Analise esta arte/imagem e identifique todos os elementos editáveis para torná-la 100% editável em um estúdio.
             Retorne um JSON estritamente seguindo este esquema:
             {
@@ -465,7 +469,7 @@ export const analyzeImageForNanoStudio = async (b: string, m: string) => {
 export const performImageEdit = async (opt: { baseImage: { base64: string, mimeType: string }, prompt: string, additionalImages?: { base64: string, mimeType: string }[], analysis?: any }) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
             const userImages = [opt.baseImage, ...(opt.additionalImages || [])];
             const res = await generateNanoBananaImage(ai, `EDIÇÃO PROFISSIONAL: ${opt.prompt}`, userImages, undefined, false);
             
@@ -488,7 +492,7 @@ export const replicateStyleAndPersonalize = async (opt: {
 }) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
             
             const prompt = `Crie uma NOVA arte baseada no DNA de estilo da imagem de referência fornecida (@imagem1).
             
@@ -520,7 +524,7 @@ export const replicateStyleAndPersonalize = async (opt: {
 export const searchImageInspiration = async (q: string) => {
     try {
         return await withRetry(async () => {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: getApiKey() });
             const res = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
                 contents: `4 prompts de imagem para "${q}". JSON array.`
@@ -547,7 +551,7 @@ export const searchImageInspiration = async (q: string) => {
 
 export const extractLayersForExport = async (b: any, a: any) => {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
         const nano = await generateNanoBananaImage(ai, "Remova o fundo.", [b]);
         return { layers: [{ filename: 'bg.png', base64: nano.images?.[0]?.base64 || '', mimeType: 'image/png' }] };
     } catch (e) { return { error: 'Erro de exportação' }; }

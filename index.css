@@ -91,7 +91,7 @@
   }
 
   .gemini-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all duration-500 cursor-pointer shadow-xl hover:shadow-highlight/5 flex flex-col justify-between h-56 text-left relative overflow-hidden;
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all duration-500 cursor-pointer shadow-xl hover:shadow-highlight/5 flex flex-col justify-between h-48 md:h-56 text-left relative overflow-hidden;
   }
 
   .gemini-card::after {
